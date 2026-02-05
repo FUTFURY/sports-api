@@ -17,8 +17,10 @@ export default async function handler(req, res) {
     }
 
     // Use the endpoint that WORKS (v2/champs) instead of the blocked one (LineFeed)
-    // Dynamic dates: -1 day to +1 day to capture active sports
-    const now = Math.floor(Date.now() / 1000);
+    // Dynamic dates: -1 day to +1 day to capture active sports, rounded to 5 min (300s)
+    let now = Math.floor(Date.now() / 1000);
+    now = now - (now % 300); // Round down to nearest 5 minutes
+
     const day = 86400;
     const dynamicUrl = `https://sa.1xbet.com/service-api/result/web/api/v2/champs?dateFrom=${now - day}&dateTo=${now + day}&lng=fr`;
 
