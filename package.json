@@ -2,8 +2,6 @@
     "name": "sports-aggregator-api",
     "version": "1.0.0",
     "description": "Serverless proxy for sports data",
-    "main": "api/index.js",
-    "dependencies": {
-        "node-fetch": "^3.3.2"
-    }
+    "type": "module",
+    "main": "api/index.js"
 }
