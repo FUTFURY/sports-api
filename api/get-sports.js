@@ -1,3 +1,5 @@
+import fetch from 'node-fetch';
+
 export default async function handler(req, res) {
     // 1. CORS Headers
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -52,6 +54,10 @@ export default async function handler(req, res) {
         return res.status(200).json(sports);
 
     } catch (error) {
-        return res.status(500).json({ error: "Internal Server Error" });
+        return res.status(500).json({
+            error: "Internal Server Error",
+            message: error.message,
+            stack: error.stack
+        });
     }
 }
