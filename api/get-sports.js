@@ -1,8 +1,18 @@
 const SPORT_NAMES = {
     1: "Football", 2: "Hockey sur glace", 3: "Basket-ball", 4: "Tennis", 5: "Volley-ball",
     6: "Athlétisme", 7: "Sports mécaniques", 8: "Tennis de table", 9: "Darts", 10: "Snooker",
-    12: "Football Américain", 13: "Boxe", 15: "Floorball", 17: "Water-polo", 19: "Badminton",
-    20: "Rugby", 23: "Futsal", 29: "Cricket", 40: "Esports", 85: "Baseball"
+    11: "Futsal", 12: "Football Américain", 13: "Boxe", 15: "Floorball", 17: "Water-polo",
+    19: "Badminton", 20: "Rugby", 21: "Curling", 23: "Futsal", 29: "Cricket",
+    33: "Handball", 40: "Esports", 85: "Baseball", 91: "Beach Volley"
+};
+
+const SPORT_ICONS = {
+    1: "mdi:soccer", 2: "mdi:hockey-sticks", 3: "mdi:basketball", 4: "mdi:tennis",
+    5: "mdi:volleyball", 6: "mdi:run", 7: "mdi:car-sports", 8: "mdi:table-tennis",
+    9: "mdi:bullseye-arrow", 10: "mdi:billiards", 12: "mdi:football",
+    13: "mdi:boxing-glove", 19: "mdi:badminton", 20: "mdi:rugby",
+    29: "mdi:cricket", 33: "mdi:handball", 40: "mdi:controller",
+    85: "mdi:baseball", 91: "mdi:volleyball"
 };
 
 export default async function handler(req, res) {
@@ -16,14 +26,14 @@ export default async function handler(req, res) {
         return;
     }
 
-    // Use the endpoint that WORKS (v2/champs) instead of the blocked one (LineFeed)
-    // Dynamic dates: -1 day to +1 day to capture active sports, rounded to 5 min (300s)
+    // Capture active sports via Championships (Robust & Bypass Block)
     let now = Math.floor(Date.now() / 1000);
-    now = now - (now % 300); // Round down to nearest 5 minutes
-
+    now = now - (now % 300);
     const day = 86400;
-    // We must specify sportIds to make the API happy. I'll include the top 20 + Esports.
-    const dynamicUrl = `https://sa.1xbet.com/service-api/result/web/api/v2/champs?dateFrom=${now - day}&dateTo=${now + day}&lng=fr&sportIds=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,40,85`;
+
+    // Broad list of IDs to check
+    const ids = Object.keys(SPORT_NAMES).join(',');
+    const dynamicUrl = `https://sa.1xbet.com/service-api/result/web/api/v2/champs?dateFrom=${now - day}&dateTo=${now + day}&lng=fr&sportIds=${ids}`;
 
     const headers = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
@@ -47,16 +57,17 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: "Invalid JSON", preview: text.substring(0, 500) });
         }
 
-        // Aggregate unique sports from the championships list
         const uniqueSports = {};
         const items = data.items || [];
 
         items.forEach(c => {
             if (!uniqueSports[c.sportId]) {
+                const iconName = SPORT_ICONS[c.sportId] || "mdi:trophy-variant";
                 uniqueSports[c.sportId] = {
                     id: c.sportId,
                     name: SPORT_NAMES[c.sportId] || `Sport ${c.sportId}`,
-                    icon: `https://v2.1xbet.com/simg/sports/light/${c.sportId}.svg`,
+                    // Serve a reliable public SVG icon (Vector)
+                    icon: `https://api.iconify.design/${iconName}.svg?color=%23333333`,
                     count: 0
                 };
             }
@@ -64,7 +75,7 @@ export default async function handler(req, res) {
         });
 
         const sportsList = Object.values(uniqueSports).sort((a, b) => {
-            // Sort priority: Football(1) > Tennis(4) > Others by active games
+            // Priority Sort
             if (a.id === 1) return -1;
             if (b.id === 1) return 1;
             return b.count - a.count;

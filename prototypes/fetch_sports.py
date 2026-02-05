@@ -22,20 +22,21 @@ def fetch_sports():
         try:
             response = requests.get(url, headers=headers, timeout=5)
             print(f"Status: {response.status_code}")
-            if response.status_code == 200:
-                data = response.json()
-                print("SUCCESS!")
-                filename = "sports_list.json"
-                with open(filename, "w") as f:
-                    json.dump(data, f, indent=4)
-                
-                # Print sample
-                if isinstance(data, list): # Standard API returns list
-                     print(f"Found {len(data)} sports (List). Sample: {data[0]}")
-                elif isinstance(data, dict) and "items" in data: # v2 usually returns dict
-                     print(f"Found {len(data['items'])} sports (Dict). Sample: {data['items'][0]}")
-                
-                return
+            if response.status_code in [200, 203]:
+                try:
+                    data = response.json()
+                    print("SUCCESS! JSON Found.")
+                    filename = "sports_list.json"
+                    with open(filename, "w") as f:
+                        json.dump(data, f, indent=4)
+                    
+                    if isinstance(data, dict) and "Value" in data:
+                         print(f"Found {len(data['Value'])} sports (Value key). Sample: {data['Value'][0]}")
+                    
+                    return
+                except:
+                    print("Status 203/200 but not JSON.")
+                    print(response.text[:500])
         except Exception as e:
             print(f"Error: {e}")
 
