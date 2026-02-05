@@ -28,27 +28,38 @@ export default async function handler(req, res) {
 
     try {
         const response = await fetch(url, { headers });
+        const text = await response.text();
+
         if (!response.ok) {
-            return res.status(response.status).json({ error: "1xBet Error", details: await response.text() });
+            return res.status(response.status).json({
+                error: "1xBet HTTP Error",
+                status: response.status,
+                details: text.substring(0, 500)
+            });
         }
 
-        const data = await response.json();
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            return res.status(500).json({
+                error: "Invalid JSON",
+                message: "1xBet returned HTML instead of JSON",
+                preview: text.substring(0, 500)
+            });
+        }
 
         // 4. Transform & Add Icons
-        // 1xBet doesn't always send the icon URL in ShortZip, so we map or deduce it.
-        // Usually: https://v2.1xbet.com/simg/sports/light/{id}.svg
-
         const sports = (data.Value || []).map(s => ({
             id: s.I,
             name: s.N,
-            icon: `https://v2.1xbet.com/simg/sports/light/${s.I}.svg`, // Vector Icon
-            count: s.C || 0 // Live events count if available
+            icon: `https://v2.1xbet.com/simg/sports/light/${s.I}.svg`,
+            count: s.C || 0
         }));
 
-        // Sort by popularity (Football=1)
         sports.sort((a, b) => a.id - b.id);
 
-        res.setHeader('Cache-Control', 's-maxage=3600'); // Cache 1 hour
+        res.setHeader('Cache-Control', 's-maxage=3600');
         return res.status(200).json(sports);
 
     } catch (error) {
