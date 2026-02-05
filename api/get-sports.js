@@ -1,11 +1,3 @@
-const SPORT_ICONS = {
-    1: "mdi:soccer", 2: "mdi:hockey-sticks", 3: "mdi:basketball", 4: "mdi:tennis",
-    5: "mdi:volleyball", 6: "mdi:run", 7: "mdi:car-sports", 8: "mdi:table-tennis",
-    9: "mdi:bullseye-arrow", 10: "mdi:billiards", 12: "mdi:football",
-    13: "mdi:boxing-glove", 19: "mdi:badminton", 20: "mdi:rugby",
-    29: "mdi:cricket", 33: "mdi:handball", 40: "mdi:controller",
-    85: "mdi:baseball", 91: "mdi:volleyball"
-};
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -55,17 +47,15 @@ export default async function handler(req, res) {
         const items = data.items || [];
 
         // Map API data to our clean format
-        // Use Official Name from API + Reliable Icon from Iconify
+        // Use Official Name from API
         const sports = items.map(s => {
-            const iconName = SPORT_ICONS[s.id] || "mdi:trophy-variant";
             return {
                 id: s.id,
-                name: (s.name || "").trim(), // Official Name
-                icon: `https://api.iconify.design/${iconName}.svg?color=%23333333`
+                name: (s.name || "").trim() // Official Name
             };
         });
 
-        // Sort: Top sports first (based on ID list) or mapped icons
+        // Sort: Top sports first (based on ID list)
         const topIds = [1, 4, 3, 2]; // Football, Tennis, Basket, Hockey
         sports.sort((a, b) => {
             const indexA = topIds.indexOf(a.id);
