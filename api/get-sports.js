@@ -22,7 +22,8 @@ export default async function handler(req, res) {
     now = now - (now % 300); // Round down to nearest 5 minutes
 
     const day = 86400;
-    const dynamicUrl = `https://sa.1xbet.com/service-api/result/web/api/v2/champs?dateFrom=${now - day}&dateTo=${now + day}&lng=fr`;
+    // We must specify sportIds to make the API happy. I'll include the top 20 + Esports.
+    const dynamicUrl = `https://sa.1xbet.com/service-api/result/web/api/v2/champs?dateFrom=${now - day}&dateTo=${now + day}&lng=fr&sportIds=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,40,85`;
 
     const headers = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
