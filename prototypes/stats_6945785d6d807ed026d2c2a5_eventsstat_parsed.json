@@ -1,0 +1,482 @@
+{
+    "teams": [
+        "Flamengo",
+        "Sport Club Internacional"
+    ],
+    "match_stats": {
+        "Buts attendus (xG)": {
+            "home": "0.5",
+            "away": "0.57"
+        },
+        "Possession": {
+            "home": "63%",
+            "away": "37%"
+        },
+        "Total shots": {
+            "home": "9",
+            "away": "5"
+        },
+        "Tirs cadrés": {
+            "home": "2",
+            "away": "3"
+        },
+        "Big Chances": {
+            "home": "0",
+            "away": "1"
+        },
+        "Corners": {
+            "home": "3",
+            "away": "1"
+        },
+        "Passes décisives": {
+            "home": "87",
+            "away": "83"
+        },
+        "Cartons jaunes": {
+            "home": "1",
+            "away": "2"
+        },
+        "xG on target (xGOT)": {
+            "home": "0.18",
+            "away": "0.74"
+        },
+        "Tirs non cadrés": {
+            "home": "5",
+            "away": "2"
+        },
+        "Tirs contrés": {
+            "home": "2",
+            "away": "0"
+        },
+        "Shots from inside the penalty area": {
+            "home": "8",
+            "away": "1"
+        },
+        "Shots from outside the penalty area": {
+            "home": "1",
+            "away": "4"
+        },
+        "Hit the woodwork": {
+            "home": "0",
+            "away": "0"
+        },
+        "Touches in opposition box": {
+            "home": "16",
+            "away": "4"
+        },
+        "Accurate through passes": {
+            "home": "0",
+            "away": "0"
+        },
+        "Hors-jeu": {
+            "home": "1",
+            "away": "0"
+        },
+        "Coups francs": {
+            "home": "10",
+            "away": "9"
+        },
+        "Passes longues": {
+            "home": "50",
+            "away": "57"
+        },
+        "Passes in final third": {
+            "home": "79",
+            "away": "73"
+        },
+        "Crosses": {
+            "home": "32",
+            "away": "0"
+        },
+        "Expected assists (xA)": {
+            "home": "0.55",
+            "away": "0.11"
+        },
+        "Touches": {
+            "home": "5",
+            "away": "6"
+        },
+        "Fautes": {
+            "home": "9",
+            "away": "10"
+        },
+        "Tacles": {
+            "home": "100",
+            "away": "57"
+        },
+        "Duels won": {
+            "home": "23",
+            "away": "30"
+        },
+        "Clearances": {
+            "home": "4",
+            "away": "20"
+        },
+        "Interceptions": {
+            "home": "5",
+            "away": "5"
+        },
+        "Errors leading to shot": {
+            "home": "0",
+            "away": "0"
+        },
+        "Errors leading to goal": {
+            "home": "0",
+            "away": "0"
+        },
+        "Arrêts": {
+            "home": "2",
+            "away": "2"
+        },
+        "xGOT faced": {
+            "home": "0.74",
+            "away": "0.18"
+        },
+        "Goals prevented": {
+            "home": "-0.26",
+            "away": "0.18"
+        }
+    },
+    "lineups": {
+        "Flamengo": [
+            {
+                "name": "Flamengo",
+                "section": "Starting",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Agustin Rossi",
+                "section": "Starting line-up",
+                "role": "G",
+                "events": []
+            },
+            {
+                "name": "Leonardo Rech Ortiz",
+                "section": "Starting line-up",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Leo Pereira",
+                "section": "Starting line-up",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Erick Pulgar",
+                "section": "Starting line-up",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Giorgian Daniel De Arrascaeta",
+                "section": "Starting line-up",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Everton Souza",
+                "section": "Starting line-up",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Diego Nicolas De La Cruz Arcosa",
+                "section": "Starting line-up",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Lucas Paqueta",
+                "section": "Starting line-up",
+                "role": null,
+                "events": [
+                    "Card"
+                ]
+            },
+            {
+                "name": "Emerson",
+                "section": "Starting line-up",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Alex Sandro",
+                "section": "Starting line-up",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Bruno Henrique",
+                "section": "Starting line-up",
+                "role": "C",
+                "events": []
+            },
+            {
+                "name": "Guillermo Varela",
+                "section": "Substitutes",
+                "role": null,
+                "events": [
+                    "Sub"
+                ]
+            },
+            {
+                "name": "Ayrton",
+                "section": "Substitutes",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Pedro Guilherme",
+                "section": "Substitutes",
+                "role": null,
+                "events": [
+                    "Sub"
+                ]
+            },
+            {
+                "name": "Jorge Carrascal",
+                "section": "Substitutes",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Samuel Dias Lino",
+                "section": "Substitutes",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Gonzalo Plata",
+                "section": "Substitutes",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Andrew da Silva Ventura",
+                "section": "Substitutes",
+                "role": "G",
+                "events": []
+            },
+            {
+                "name": "Vitao",
+                "section": "Substitutes",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Daniel dos Santos Sales",
+                "section": "Substitutes",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Evertton Gustavo Fernandes Araujo",
+                "section": "Substitutes",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Wallace Yan de Souza Barreto",
+                "section": "Substitutes",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Douglas Costa Telles",
+                "section": "Substitutes",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Filipe Luis",
+                "section": "Head coach",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Jorginho",
+                "section": "Players not in the lineup",
+                "role": null,
+                "events": [
+                    "Card"
+                ]
+            },
+            {
+                "name": "Saúl",
+                "section": "Players not in the lineup",
+                "role": null,
+                "events": []
+            }
+        ],
+        "Sport Club Internacional": [
+            {
+                "name": "Sport Club Internacional",
+                "section": "Starting",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Sergio Rochet",
+                "section": "Starting line-up",
+                "role": "G",
+                "events": []
+            },
+            {
+                "name": "Johan Carbonero",
+                "section": "Starting line-up",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Alan Patrick Lourenco",
+                "section": "Starting line-up",
+                "role": "C",
+                "events": []
+            },
+            {
+                "name": "Bruno Gomes da Silva Clevelario",
+                "section": "Starting line-up",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Ronaldo da Silva Souza",
+                "section": "Starting line-up",
+                "role": null,
+                "events": [
+                    "Card"
+                ]
+            },
+            {
+                "name": "Rafael Borre",
+                "section": "Starting line-up",
+                "role": null,
+                "events": [
+                    "Goal"
+                ]
+            },
+            {
+                "name": "Gabriel Mercado",
+                "section": "Starting line-up",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Alexandro Bernabei",
+                "section": "Starting line-up",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Paulinho",
+                "section": "Starting line-up",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Vitinho",
+                "section": "Starting line-up",
+                "role": null,
+                "events": [
+                    "Card"
+                ]
+            },
+            {
+                "name": "Victor Gabriel da Conceicao Ribeiro",
+                "section": "Starting line-up",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Felix Torres",
+                "section": "Substitutes",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Bruno Henrique",
+                "section": "Substitutes",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Alerrandro",
+                "section": "Substitutes",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Tabata",
+                "section": "Substitutes",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Juninho",
+                "section": "Substitutes",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Anthoni Spier Souza",
+                "section": "Substitutes",
+                "role": "G",
+                "events": []
+            },
+            {
+                "name": "Thiago Maia",
+                "section": "Substitutes",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Allex Rodrigues Pereira da Silva",
+                "section": "Substitutes",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Diego Esser",
+                "section": "Substitutes",
+                "role": "G",
+                "events": []
+            },
+            {
+                "name": "Braian Aguirre",
+                "section": "Substitutes",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Joaozinho",
+                "section": "Substitutes",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Gustavo Prado",
+                "section": "Substitutes",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Paulo Pezzolano",
+                "section": "Head coach",
+                "role": null,
+                "events": []
+            },
+            {
+                "name": "Alan Jesus Rodriguez Guaglianoni",
+                "section": "Players not in the lineup",
+                "role": null,
+                "events": []
+            }
+        ]
+    },
+    "metadata": {
+        "uuid": "6945785d6d807ed026d2c2a5",
+        "url": "https://eventsstat.com/fr/statisticpopup/game/football/6945785d6d807ed026d2c2a5/main?hs=1&ln=fr&gti=G-7JGWL9SV66&rtl=0&fh=1&r=1&g=1208&p=1208&tz=3&geo=158"
+    }
+}

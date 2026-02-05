@@ -1,0 +1,17 @@
+# Node
+node_modules/
+npm-debug.log
+
+# Python (Prototypes)
+venv/
+__pycache__/
+*.pyc
+
+# System
+.DS_Store
+
+# Sensitive / Local
+fresh_cookies.txt
+.env
+prototypes/headers_results.json
+headers_results.json
