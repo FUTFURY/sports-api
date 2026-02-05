@@ -10,17 +10,21 @@ export default async function handler(req, res) {
         return;
     }
 
-    // Use the Authenticated v2/sports endpoint
-    // Requires exact parameter sorting: dateFrom, dateTo, lng, sportIds
+    // Default: Today +/- 1 day logic for active sports
     let now = Math.floor(Date.now() / 1000);
-    now = now - (now % 300);
+    now = now - (now % 300); // 5-min alignment
     const day = 86400;
-    const dateFrom = now - day;
-    const dateTo = now + day;
 
-    // We pass sportIds=1 to satisfy the validator, but the endpoint returns active sports
+    // Allow overriding from Query Params
+    const {
+        dateFrom = now - day,
+        dateTo = now + day,
+        lng = "fr"
+    } = req.query;
+
+    // We pass sportIds=1 to satisfy the validator, but the 1xBet endpoint returns active sports
     const base = "https://sa.1xbet.com/service-api/result/web/api/v2/sports";
-    const dynamicUrl = `${base}?dateFrom=${dateFrom}&dateTo=${dateTo}&lng=fr&sportIds=1`;
+    const dynamicUrl = `${base}?dateFrom=${dateFrom}&dateTo=${dateTo}&lng=${lng}&sportIds=1`;
 
     const headers = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
