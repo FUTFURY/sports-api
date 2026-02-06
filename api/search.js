@@ -44,8 +44,9 @@ export default async function handler(req, res) {
 
         // 5. Clean Data
         // Structure: { sport: [ { champs: [ { games: [] } ] } ] }
-        const results = [];
+        let results = [];
         const sports = data.sport || [];
+        const lowerQuery = text.toLowerCase();
 
         sports.forEach(s => {
             const sportName = (s.name || "").trim();
@@ -58,7 +59,8 @@ export default async function handler(req, res) {
                     name: c.name,
                     sportName: sportName,
                     logo: c.image,
-                    count: (c.games || []).length
+                    count: (c.games || []).length,
+                    leagueName: c.name // Self-reference for scoring
                 });
 
                 // Add Games
@@ -78,6 +80,61 @@ export default async function handler(req, res) {
                 });
             });
         });
+
+        // --- Extract Teams ---
+        const distinctTeams = new Map();
+        results.filter(r => r.type === 'Game').forEach(g => {
+            [g.team1, g.team2].forEach(teamName => {
+                const lowerTeam = teamName.toLowerCase();
+                // Fuzzy match: if team name contains query or query contains team name
+                if (lowerTeam.includes(lowerQuery) || lowerQuery.includes(lowerTeam)) {
+                    if (!distinctTeams.has(teamName)) {
+                        distinctTeams.set(teamName, {
+                            type: 'Team',
+                            id: `team_${teamName.replace(/\s+/g, '_')}`, // Virtual ID
+                            name: teamName,
+                            sportName: g.sportName,
+                            leagueName: g.leagueName // Just for scoring context
+                        });
+                    }
+                }
+            });
+        });
+
+        results.push(...distinctTeams.values());
+
+        // --- Relevance Scoring ---
+        const penaltyKeywords = ["women", "femmes", "u19", "u21", "u23", "reserve", "youth", "esports", "cyber", "simulated", "rl", "2x4", "liga pro", " srl"];
+        const majorLeagues = ["champions league", "ligue 1", "premier league", "laliga", "serie a", "bundesliga", "nba", "nhl", "euroleague"];
+        const userAskedForSecondary = penaltyKeywords.some(k => lowerQuery.includes(k));
+
+        results = results.map(item => {
+            let score = 0;
+            const lowerName = item.name.toLowerCase();
+            const lowerLeague = (item.leagueName || "").toLowerCase();
+
+            // 1. Match Quality
+            if (lowerName === lowerQuery) score += 100;
+            else if (lowerName.startsWith(lowerQuery)) score += 50;
+            else if (lowerName.includes(lowerQuery)) score += 20;
+
+            // 2. Penalties (The "Real Team" heuristic)
+            const isSecondary = penaltyKeywords.some(k => lowerName.includes(k) || lowerLeague.includes(k));
+
+            if (isSecondary && !userAskedForSecondary) {
+                score -= 50;
+            }
+
+            // 3. League Boost (Prioritize top-tier events)
+            if (majorLeagues.some(l => lowerLeague.includes(l))) {
+                score += 25;
+            }
+
+            return { ...item, _score: score };
+        });
+
+        // Sort by score descending
+        results.sort((a, b) => b._score - a._score);
 
         res.setHeader('Cache-Control', 's-maxage=60');
         return res.status(200).json(results);
