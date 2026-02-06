@@ -24,6 +24,7 @@ function SearchPage() {
     }, [query]);
 
     // Group results by type
+    const teams = results.filter(r => r.type === 'Team');
     const leagues = results.filter(r => r.type === 'League');
     const games = results.filter(r => r.type === 'Game');
 
@@ -60,6 +61,30 @@ function SearchPage() {
                         <div className="text-center text-gray-500 mt-10">
                             No results found for "{query}".
                         </div>
+                    )}
+
+                    {teams.length > 0 && (
+                        <section>
+                            <h2 className="text-lg font-bold mb-3 flex items-center gap-2 text-gray-700">
+                                <Trophy className="w-5 h-5 text-teal-600" /> Teams
+                            </h2>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                {teams.map(t => (
+                                    <div
+                                        key={t.id}
+                                        className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3"
+                                    >
+                                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl font-bold text-gray-500">
+                                            {t.name.substring(0, 1)}
+                                        </div>
+                                        <div>
+                                            <div className="font-semibold text-sm line-clamp-1">{t.name}</div>
+                                            <div className="text-xs text-gray-500">{t.sportName}</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
                     )}
 
                     {leagues.length > 0 && (

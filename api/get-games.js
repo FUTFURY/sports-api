@@ -49,8 +49,8 @@ export default async function handler(req, res) {
             id: game.id,
             league_id: champId,
             teams: {
-                home: game.opp1,
-                away: game.opp2
+                home: game.team1 || game.opp1 || "Home",
+                away: game.team2 || game.opp2 || "Away"
             },
             score: game.score, // e.g. "3:1"
             stats: (game.subGame || []).map(s => ({
