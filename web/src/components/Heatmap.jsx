@@ -126,7 +126,8 @@ const Heatmap = ({ gameId }) => {
                     ctx.fillText("Waiting for game action...", 20, 70);
                 }
             }
-        }, [gameState, status, error]);
+        }
+    }, [gameState, status, error, mode]);
 
     return (
         <div className="heatmap-container p-4 bg-gray-900 rounded-lg">
