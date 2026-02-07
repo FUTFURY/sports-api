@@ -5,7 +5,10 @@ import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 export const use1xZone = (gameId) => {
     const [connection, setConnection] = useState(null);
     const [gameState, setGameState] = useState({
-        ball: { x: 50, y: 50 }, // Center by default
+        ball: null, // No position initially
+        lastPlayer: "",
+        team: 0,
+        history: [], // For trails
         players: [],
         events: []
     });
@@ -48,16 +51,44 @@ export const use1xZone = (gameId) => {
 
                     // Listen for game updates
                     connection.on(EVENT_GAME_DATA, (data) => {
-                        console.log('Game Data received:', data);
-                        // Data parsing logic (to be refined based on actual payload structure)
-                        // Assuming data contains coordinates. 
-                        // If it's the raw binary-like JSON we saw earlier, we might need parsing.
-                        // But let's dump it first.
+                        // console.log('Game Data received:', data);
 
                         setGameState(prevState => {
-                            // POC: Just store raw data for inspection first, 
-                            // or try to map if it looks like { x: ..., y: ... }
-                            return { ...prevState, raw: data };
+                            const newState = { ...prevState, raw: data };
+
+                            // Parse XY coordinates (e.g., "0.95,0.5")
+                            if (data.XY) {
+                                const parts = data.XY.split(',');
+                                if (parts.length === 2) {
+                                    // 1xBet usually normalizes 0..1
+                                    const x = parseFloat(parts[0]);
+                                    const y = parseFloat(parts[1]);
+
+                                    if (!isNaN(x) && !isNaN(y)) {
+                                        newState.ball = { x, y };
+
+                                        // Add to history (limit to last 20 points)
+                                        const newHistory = [...prevState.history, { x, y }];
+                                        if (newHistory.length > 20) newHistory.shift();
+                                        newState.history = newHistory;
+                                    }
+                                }
+                            }
+
+                            // Parse Active Player
+                            if (data.PG) {
+                                newState.lastPlayer = data.PG;
+                            }
+
+                            // Parse Team/Event Code (VC)
+                            // "1xxxx" -> Team 1?, "2xxxx" -> Team 2?
+                            if (data.VC) {
+                                const codeStr = String(data.VC);
+                                if (codeStr.startsWith('1')) newState.team = 1;
+                                if (codeStr.startsWith('2')) newState.team = 2;
+                            }
+
+                            return newState;
                         });
                     });
                 })

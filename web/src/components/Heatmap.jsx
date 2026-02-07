@@ -30,20 +30,62 @@ const Heatmap = ({ gameId }) => {
             ctx.lineTo(width / 2, height - 10);
             ctx.stroke();
 
-            // Status Text
-            ctx.fillStyle = 'white';
-            ctx.font = '14px Arial';
-            ctx.fillText(`Status: ${status}`, 20, 30);
-            if (error) ctx.fillText(`Error: ${error}`, 20, 50);
+            // Draw Trail
+            if (gameState.history.length > 1) {
+                ctx.beginPath();
+                ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+                ctx.lineWidth = 3;
+                // Move to first point
+                ctx.moveTo(gameState.history[0].x * width, gameState.history[0].y * height);
+                for (let i = 1; i < gameState.history.length; i++) {
+                    const p = gameState.history[i];
+                    ctx.lineTo(p.x * width, p.y * height);
+                }
+                ctx.stroke();
+            }
 
-            // Visualize Data (POC)
-            // Ideally we plot players/ball here using gameState
-            // For now, let's just show if we have data
-            if (gameState.raw) {
-                ctx.fillText(`Data received! Check console.`, 20, 70);
+            // Draw Ball / Active Point
+            if (gameState.ball) {
+                const { x, y } = gameState.ball;
+                const px = x * width;
+                const py = y * height;
 
-                // Try to plot something if 'B' (Ball) exists in data?
-                // This is speculative until we see the real data structure
+                // Color based on team (1=Red, 2=Blue, 0=White)
+                let color = 'white';
+                if (gameState.team === 1) color = '#ef4444'; // Red-ish
+                if (gameState.team === 2) color = '#3b82f6'; // Blue-ish
+
+                // Glow effect
+                const gradient = ctx.createRadialGradient(px, py, 2, px, py, 10);
+                gradient.addColorStop(0, color);
+                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(px, py, 10, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Solid center
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(px, py, 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Player Name Tag
+                if (gameState.lastPlayer) {
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                    const textWidth = ctx.measureText(gameState.lastPlayer).width;
+                    ctx.fillRect(px - textWidth / 2 - 4, py - 25, textWidth + 8, 20);
+
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold 12px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(gameState.lastPlayer, px, py - 11);
+                }
+            } else {
+                ctx.fillStyle = 'white';
+                ctx.font = '14px sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText("Waiting for game action...", 20, 70);
             }
         }
     }, [gameState, status, error]);
