@@ -42,6 +42,16 @@ export const getGames = async (champId, dateFrom, dateTo) => {
     }
 };
 
+export const getLiveGames = async () => {
+    try {
+        const response = await api.get('/get-live-games');
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching live games:", error);
+        return [];
+    }
+};
+
 export const searchEvents = async (text) => {
     try {
         const response = await api.get('/search', {

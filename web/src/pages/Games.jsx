@@ -3,11 +3,14 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { getGames } from '../services/api';
 import { ChevronLeft } from 'lucide-react';
 import SearchBar from '../components/SearchBar';
+import Heatmap from '../components/Heatmap';
 
 function Games() {
     const { champId } = useParams();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
+
+    const [expandedGameId, setExpandedGameId] = useState(null);
 
     const dateFrom = searchParams.get('dateFrom');
     const dateTo = searchParams.get('dateTo');
@@ -50,7 +53,7 @@ function Games() {
                         games.map((game) => (
                             <div
                                 key={game.id}
-                                className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm active:scale-[0.99] transition-transform"
+                                className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm transition-transform hover:shadow-md"
                             >
                                 <div className="flex justify-between items-center mb-3 text-sm text-gray-500 font-medium">
                                     <span>Match</span>
@@ -59,14 +62,32 @@ function Games() {
                                     </span>
                                 </div>
 
-                                <div className="flex flex-col gap-2">
-                                    <div className="flex justify-between items-center p-2 rounded-lg bg-gray-50">
-                                        <span className="font-semibold text-lg text-gray-900">{game.teams?.home || "Home Team"}</span>
+                                {/* Clickable Area to Toggle Heatmap */}
+                                <div
+                                    className="cursor-pointer"
+                                    onClick={() => setExpandedGameId(expandedGameId === game.id ? null : game.id)}
+                                >
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex justify-between items-center p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                                            <span className="font-semibold text-lg text-gray-900">{game.teams?.home || "Home Team"}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                                            <span className="font-semibold text-lg text-gray-900">{game.teams?.away || "Away Team"}</span>
+                                        </div>
                                     </div>
-                                    <div className="flex justify-between items-center p-2 rounded-lg bg-gray-50">
-                                        <span className="font-semibold text-lg text-gray-900">{game.teams?.away || "Away Team"}</span>
+
+                                    {/* Hint Text */}
+                                    <div className="mt-2 text-center text-xs text-blue-500 font-medium">
+                                        {expandedGameId === game.id ? "Minimize 1xZone" : "Tap to view Live 1xZone & Heatmap"}
                                     </div>
                                 </div>
+
+                                {/* Heatmap Section */}
+                                {expandedGameId === game.id && (
+                                    <div className="mt-4 animate-fadeIn">
+                                        <Heatmap gameId={game.id} />
+                                    </div>
+                                )}
 
                                 {/* Optional: Show stats count or other info */}
                                 {game.stats && game.stats.length > 0 && (

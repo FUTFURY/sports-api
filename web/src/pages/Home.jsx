@@ -66,9 +66,18 @@ function Home() {
                     <h1 className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent">
                         Sports Fury
                     </h1>
-                    <button onClick={fetchSports} className="p-2 bg-white rounded-full hover:bg-gray-100 shadow-sm transition border border-gray-200">
-                        🔄
-                    </button>
+                    <div className="flex gap-2 items-center">
+                        <button
+                            onClick={() => navigate('/games/live')}
+                            className="flex items-center gap-1 px-3 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold shadow-sm hover:bg-red-600 transition animate-pulse"
+                        >
+                            <div className="w-2 h-2 bg-white rounded-full" />
+                            LIVE
+                        </button>
+                        <button onClick={fetchSports} className="p-2 bg-white rounded-full hover:bg-gray-100 shadow-sm transition border border-gray-200">
+                            🔄
+                        </button>
+                    </div>
                 </div>
                 <SearchBar />
             </header>
