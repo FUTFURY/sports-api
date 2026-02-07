@@ -5,6 +5,19 @@ import { use1xZone } from '../hooks/use1xZone';
 const Heatmap = ({ gameId }) => {
     const { gameState, status, error } = use1xZone(gameId);
     const canvasRef = useRef(null);
+    const [mode, setMode] = React.useState('live'); // 'live' or 'density'
+
+    // Maintain a separate Ref for density history since it can be large and we don't want re-renders on every point for logic, just canvas
+    const densityPointsRef = useRef([]);
+
+    // Update density points when gameState changes
+    useEffect(() => {
+        if (gameState.ball) {
+            densityPointsRef.current.push(gameState.ball);
+            // Limit to ~2000 points to avoid performance issues
+            if (densityPointsRef.current.length > 2000) densityPointsRef.current.shift();
+        }
+    }, [gameState.ball]);
 
     useEffect(() => {
         if (canvasRef.current) {
@@ -92,7 +105,23 @@ const Heatmap = ({ gameId }) => {
 
     return (
         <div className="heatmap-container p-4 bg-gray-900 rounded-lg">
-            <h3 className="text-white text-lg mb-2">1xZone Live Heatmap</h3>
+            <div className="flex justify-between items-center mb-2">
+                <h3 className="text-white text-lg">1xZone</h3>
+                <div className="flex bg-gray-800 rounded p-1">
+                    <button
+                        onClick={() => setMode('live')}
+                        className={`px-3 py-1 text-xs font-bold rounded ${mode === 'live' ? 'bg-teal-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                    >
+                        Live Tracker
+                    </button>
+                    <button
+                        onClick={() => setMode('density')}
+                        className={`px-3 py-1 text-xs font-bold rounded ${mode === 'density' ? 'bg-red-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                    >
+                        Heatmap
+                    </button>
+                </div>
+            </div>
             <canvas
                 ref={canvasRef}
                 width={600}
