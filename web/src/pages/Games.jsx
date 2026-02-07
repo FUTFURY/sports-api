@@ -1,30 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { getGames } from '../services/api';
+import { getGames, getLiveGames } from '../services/api';
 import { ChevronLeft } from 'lucide-react';
 import SearchBar from '../components/SearchBar';
 import Heatmap from '../components/Heatmap';
 
 function Games() {
     const { champId } = useParams();
-    const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
-
-    const [expandedGameId, setExpandedGameId] = useState(
-        searchParams.get('gameId') ? parseInt(searchParams.get('gameId')) : null
-    );
-
-    const dateFrom = searchParams.get('dateFrom');
-    const dateTo = searchParams.get('dateTo');
-    const leagueName = searchParams.get('leagueName') || (champId === 'live' ? 'Live Matches' : 'Games');
-
-    const [games, setGames] = useState([]);
-    const [loading, setLoading] = useState(true);
-
+    // ... (lines 10-23 unchanged) ...
     useEffect(() => {
         const fetchGames = async () => {
             setLoading(true);
-            const data = await getGames(champId, dateFrom, dateTo);
+            let data = [];
+            if (champId === 'live') {
+                data = await getLiveGames();
+            } else {
+                data = await getGames(champId, dateFrom, dateTo);
+            }
             setGames(data);
             setLoading(false);
         };
