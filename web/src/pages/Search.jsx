@@ -126,7 +126,15 @@ function SearchPage() {
                                 {games.map(g => (
                                     <div
                                         key={g.id}
-                                        className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm"
+                                        onClick={() => {
+                                            // Create a window around the game time to ensure it appears in the list
+                                            const start = g.startTime;
+                                            // Handle potential missing startTime by falling back to wide range or defaults
+                                            const from = start ? start - 86400 : "";
+                                            const to = start ? start + 86400 : "";
+                                            navigate(`/games/${g.leagueId}?leagueName=${encodeURIComponent(g.leagueName)}&gameId=${g.id}&dateFrom=${from}&dateTo=${to}`);
+                                        }}
+                                        className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm cursor-pointer hover:shadow-md transition-all active:scale-[0.98]"
                                     >
                                         <div className="flex justify-between items-start mb-2">
                                             <div className="text-xs font-bold text-teal-600 bg-teal-50 px-2 py-1 rounded">

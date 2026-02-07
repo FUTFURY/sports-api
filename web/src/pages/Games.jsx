@@ -10,11 +10,13 @@ function Games() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
 
-    const [expandedGameId, setExpandedGameId] = useState(null);
+    const [expandedGameId, setExpandedGameId] = useState(
+        searchParams.get('gameId') ? parseInt(searchParams.get('gameId')) : null
+    );
 
     const dateFrom = searchParams.get('dateFrom');
     const dateTo = searchParams.get('dateTo');
-    const leagueName = searchParams.get('leagueName') || 'Games';
+    const leagueName = searchParams.get('leagueName') || (champId === 'live' ? 'Live Matches' : 'Games');
 
     const [games, setGames] = useState([]);
     const [loading, setLoading] = useState(true);
