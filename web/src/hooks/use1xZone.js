@@ -104,6 +104,21 @@ export const use1xZone = (gameId) => {
                                 const codeStr = String(data.VC);
                                 if (codeStr.startsWith('1')) newState.team = 1;
                                 if (codeStr.startsWith('2')) newState.team = 2;
+
+                                // Add to event log if player is known
+                                if (newState.lastPlayer) {
+                                    const event = {
+                                        id: Date.now(),
+                                        player: newState.lastPlayer,
+                                        team: newState.team,
+                                        code: data.VC,
+                                        time: new Date().toLocaleTimeString()
+                                    };
+                                    // Verify uniqueness by code/player to avoid spam, or just push
+                                    // Simple approach: unshift
+                                    const newEvents = [event, ...prevState.events].slice(0, 10); // Keep last 10
+                                    newState.events = newEvents;
+                                }
                             }
 
                             return newState;

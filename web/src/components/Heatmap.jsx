@@ -99,6 +99,26 @@ const Heatmap = ({ gameId }) => {
                 height={400}
                 className="w-full h-auto border border-gray-700 rounded shadow-lg"
             />
+
+            {/* Live Play-by-Play Log */}
+            <div className="mt-4 p-3 bg-gray-800 rounded border border-gray-700">
+                <h4 className="text-gray-300 text-sm font-bold mb-2">Live Feed</h4>
+                <div className="flex flex-col gap-1 max-h-32 overflow-y-auto">
+                    {gameState.events.length === 0 ? (
+                        <div className="text-gray-500 text-xs italic">Waiting for events...</div>
+                    ) : (
+                        gameState.events.map((ev) => (
+                            <div key={ev.id} className="text-xs text-gray-300 flex justify-between border-b border-gray-700/50 pb-1 last:border-0">
+                                <span className={ev.team === 1 ? 'text-red-400' : ev.team === 2 ? 'text-blue-400' : 'text-gray-300 font-bold'}>
+                                    {ev.player}
+                                </span>
+                                <span className="opacity-50">{ev.time}</span>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+
             <div className="mt-2 text-xs text-gray-400 font-mono">
                 Running SignalR connection to maxizone.win...
             </div>
