@@ -15,11 +15,8 @@ export default async function handler(req, res) {
     }
 
     // 2. Define 1xBet Live URL
-    // Get1x2_VZip is standard for Live. 
-    // sports=1 (Football)
-    // count=50 (Top 50 games)
-    // mode=4 (Top/All?)
-    const url = `https://sa.1xbet.com/LiveFeed/Get1x2_VZip?sports=1&count=50&lng=fr&mode=4&country=1&partner=48&getEmpty=true`;
+    // Use service-api mirror to bypass redirects/blocks
+    const url = `https://sa.1xbet.com/service-api/LiveFeed/Get1x2_VZip?sports=1&count=50&lng=fr&mode=4&country=1&partner=159&getEmpty=true&noFilterBlockEvent=true`;
 
     // 3. Secure Headers (sharing same env vars as get-games)
     const headers = {
