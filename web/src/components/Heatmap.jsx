@@ -43,65 +43,90 @@ const Heatmap = ({ gameId }) => {
             ctx.lineTo(width / 2, height - 10);
             ctx.stroke();
 
-            // Draw Trail
-            if (gameState.history.length > 1) {
-                ctx.beginPath();
-                ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
-                ctx.lineWidth = 3;
-                // Move to first point
-                ctx.moveTo(gameState.history[0].x * width, gameState.history[0].y * height);
-                for (let i = 1; i < gameState.history.length; i++) {
-                    const p = gameState.history[i];
-                    ctx.lineTo(p.x * width, p.y * height);
-                }
-                ctx.stroke();
-            }
+            // Draw based on Mode
+            if (mode === 'density') {
+                // Density Heatmap
+                densityPointsRef.current.forEach(pt => {
+                    const px = pt.x * width;
+                    const py = pt.y * height;
 
-            // Draw Ball / Active Point
-            if (gameState.ball) {
-                const { x, y } = gameState.ball;
-                const px = x * width;
-                const py = y * height;
+                    ctx.fillStyle = 'rgba(255, 50, 0, 0.05)'; // Very faint red
+                    ctx.beginPath();
+                    ctx.arc(px, py, 15, 0, Math.PI * 2);
+                    ctx.fill();
+                });
 
-                // Color based on team (1=Red, 2=Blue, 0=White)
-                let color = 'white';
-                if (gameState.team === 1) color = '#ef4444'; // Red-ish
-                if (gameState.team === 2) color = '#3b82f6'; // Blue-ish
-
-                // Glow effect
-                const gradient = ctx.createRadialGradient(px, py, 2, px, py, 10);
-                gradient.addColorStop(0, color);
-                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                ctx.fillStyle = gradient;
-                ctx.beginPath();
-                ctx.arc(px, py, 10, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Solid center
-                ctx.fillStyle = '#fff';
-                ctx.beginPath();
-                ctx.arc(px, py, 4, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Player Name Tag
-                if (gameState.lastPlayer) {
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-                    const textWidth = ctx.measureText(gameState.lastPlayer).width;
-                    ctx.fillRect(px - textWidth / 2 - 4, py - 25, textWidth + 8, 20);
-
+                // Draw active ball on top
+                if (gameState.ball) {
+                    const { x, y } = gameState.ball;
                     ctx.fillStyle = 'white';
-                    ctx.font = 'bold 12px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(gameState.lastPlayer, px, py - 11);
+                    ctx.beginPath();
+                    ctx.arc(x * width, y * height, 4, 0, Math.PI * 2);
+                    ctx.fill();
                 }
+
             } else {
-                ctx.fillStyle = 'white';
-                ctx.font = '14px sans-serif';
-                ctx.textAlign = 'left';
-                ctx.fillText("Waiting for game action...", 20, 70);
+                // Live Tracker Mode (Original)
+
+                // Draw Trail
+                if (gameState.history.length > 1) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+                    ctx.lineWidth = 3;
+                    // Move to first point
+                    ctx.moveTo(gameState.history[0].x * width, gameState.history[0].y * height);
+                    for (let i = 1; i < gameState.history.length; i++) {
+                        const p = gameState.history[i];
+                        ctx.lineTo(p.x * width, p.y * height);
+                    }
+                    ctx.stroke();
+                }
+
+                // Draw Ball / Active Point
+                if (gameState.ball) {
+                    const { x, y } = gameState.ball;
+                    const px = x * width;
+                    const py = y * height;
+
+                    // Color based on team (1=Red, 2=Blue, 0=White)
+                    let color = 'white';
+                    if (gameState.team === 1) color = '#ef4444'; // Red-ish
+                    if (gameState.team === 2) color = '#3b82f6'; // Blue-ish
+
+                    // Glow effect
+                    const gradient = ctx.createRadialGradient(px, py, 2, px, py, 10);
+                    gradient.addColorStop(0, color);
+                    gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(px, py, 10, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Solid center
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath();
+                    ctx.arc(px, py, 4, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Player Name Tag
+                    if (gameState.lastPlayer) {
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                        const textWidth = ctx.measureText(gameState.lastPlayer).width;
+                        ctx.fillRect(px - textWidth / 2 - 4, py - 25, textWidth + 8, 20);
+
+                        ctx.fillStyle = 'white';
+                        ctx.font = 'bold 12px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(gameState.lastPlayer, px, py - 11);
+                    }
+                } else {
+                    ctx.fillStyle = 'white';
+                    ctx.font = '14px sans-serif';
+                    ctx.textAlign = 'left';
+                    ctx.fillText("Waiting for game action...", 20, 70);
+                }
             }
-        }
-    }, [gameState, status, error]);
+        }, [gameState, status, error]);
 
     return (
         <div className="heatmap-container p-4 bg-gray-900 rounded-lg">
