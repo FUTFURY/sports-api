@@ -39,15 +39,33 @@ export const use1xZone = (gameId) => {
                     console.log('SignalR Connected!');
                     setStatus('connected');
 
-                    // Invoke ConnectClient to subscribe to the game
-                    // derived from 'Dw' in original code
-                    // Arguments: { gameid: ..., sport: 1, lng: "fr", ver: 2 } (guessing ver=2 based on URL v2)
-                    connection.invoke(METHOD_CONNECT, {
-                        gameid: parseInt(gameId),
-                        sport: 1, // Defaulting to football (1)
-                        lng: "fr",
-                        ver: 2
-                    }).catch(err => console.error('Invoke Error:', err));
+                    // Function to subscribe to the game
+                    const subscribeToGame = () => {
+                        console.log('Subscribing to game:', gameId);
+                        connection.invoke(METHOD_CONNECT, {
+                            gameid: parseInt(gameId),
+                            sport: 1,
+                            lng: "fr",
+                            ver: 2
+                        }).catch(err => console.error('Invoke Error:', err));
+                    };
+
+                    // Subscribe immediately
+                    subscribeToGame();
+
+                    // Re-subscribe if connection is lost and restored
+                    connection.onreconnected(() => {
+                        console.log('SignalR Reconnected! Re-subscribing...');
+                        setStatus('connected');
+                        subscribeToGame();
+                    });
+
+                    connection.onreconnecting(() => {
+                        console.log('SignalR Reconnecting...');
+                        setStatus('reconnecting');
+                    });
+
+                    // Listen for game updates
 
                     // Listen for game updates
                     connection.on(EVENT_GAME_DATA, (data) => {
