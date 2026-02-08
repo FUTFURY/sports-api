@@ -6,10 +6,10 @@ export const api = axios.create({
     baseURL: API_URL,
 });
 
-export const getSports = async (dateFrom, dateTo) => {
+export const getSports = async (dateFrom, dateTo, lng = 'fr') => {
     try {
         const response = await api.get('/get-sports', {
-            params: { dateFrom, dateTo }
+            params: { dateFrom, dateTo, lng }
         });
         return response.data;
     } catch (error) {
@@ -18,10 +18,10 @@ export const getSports = async (dateFrom, dateTo) => {
     }
 };
 
-export const getLeagues = async (sportId, dateFrom, dateTo) => {
+export const getLeagues = async (sportId, dateFrom, dateTo, lng = 'fr') => {
     try {
         const response = await api.get('/get-leagues', {
-            params: { sportId, dateFrom, dateTo }
+            params: { sportId, dateFrom, dateTo, lng }
         });
         return response.data;
     } catch (error) {
@@ -30,10 +30,10 @@ export const getLeagues = async (sportId, dateFrom, dateTo) => {
     }
 };
 
-export const getGames = async (champId, dateFrom, dateTo) => {
+export const getGames = async (champId, dateFrom, dateTo, lng = 'fr') => {
     try {
         const response = await api.get('/get-games', {
-            params: { champId, dateFrom, dateTo }
+            params: { champId, dateFrom, dateTo, lng }
         });
         return response.data;
     } catch (error) {
@@ -42,9 +42,11 @@ export const getGames = async (champId, dateFrom, dateTo) => {
     }
 };
 
-export const getLiveGames = async () => {
+export const getLiveGames = async (lng = 'fr') => {
     try {
-        const response = await api.get('/get-live-games');
+        const response = await api.get('/get-live-games', {
+            params: { lng }
+        });
         return response.data;
     } catch (error) {
         console.error("Error fetching live games:", error);
@@ -52,10 +54,10 @@ export const getLiveGames = async () => {
     }
 };
 
-export const searchEvents = async (text) => {
+export const searchEvents = async (text, lng = 'fr') => {
     try {
         const response = await api.get('/search', {
-            params: { text }
+            params: { text, lng }
         });
 
         const data = response.data;

@@ -5,17 +5,24 @@ import Leagues from './pages/Leagues';
 import Games from './pages/Games';
 import Search from './pages/Search';
 
+import { LanguageProvider } from './contexts/LanguageContext';
+import Layout from './components/Layout';
+
 function App() {
     return (
-        <Router>
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/leagues/:sportId" element={<Leagues />} />
-                <Route path="/games/:champId" element={<Games />} />
-                <Route path="/search" element={<Search />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-        </Router>
+        <LanguageProvider>
+            <Router>
+                <Layout>
+                    <Routes>
+                        <Route path="/" element={<Home />} />
+                        <Route path="/leagues/:sportId" element={<Leagues />} />
+                        <Route path="/games/:champId" element={<Games />} />
+                        <Route path="/search" element={<Search />} />
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                </Layout>
+            </Router>
+        </LanguageProvider>
     );
 }
 

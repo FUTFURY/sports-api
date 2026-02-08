@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { getSports } from '../services/api';
 import { Layers } from 'lucide-react';
 import SearchBar from '../components/SearchBar';
+import { useLanguage } from '../contexts/LanguageContext';
 
 function Home() {
     const navigate = useNavigate();
+    const { language } = useLanguage();
     const [sports, setSports] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -20,7 +22,7 @@ function Home() {
 
     useEffect(() => {
         fetchSports();
-    }, [selectedDate]);
+    }, [selectedDate, language]);
 
     const fetchSports = async () => {
         setLoading(true);
@@ -35,7 +37,7 @@ function Home() {
         let to = Math.floor(end.getTime() / 1000);
         to = to - (to % 300);
 
-        const data = await getSports(from, to);
+        const data = await getSports(from, to, language);
         setSports(data);
         setLoading(false);
     };
@@ -60,25 +62,8 @@ function Home() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 text-gray-900 p-4 font-sans">
+        <div className="font-sans">
             <header className="flex flex-col gap-4 mb-6">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent">
-                        Sports Fury
-                    </h1>
-                    <div className="flex gap-2 items-center">
-                        <button
-                            onClick={() => navigate('/games/live')}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold shadow-sm hover:bg-red-600 transition animate-pulse"
-                        >
-                            <div className="w-2 h-2 bg-white rounded-full" />
-                            LIVE
-                        </button>
-                        <button onClick={fetchSports} className="p-2 bg-white rounded-full hover:bg-gray-100 shadow-sm transition border border-gray-200">
-                            🔄
-                        </button>
-                    </div>
-                </div>
                 <SearchBar />
             </header>
 
@@ -88,12 +73,12 @@ function Home() {
                         key={date.toISOString()}
                         onClick={() => setSelectedDate(date)}
                         className={`flex flex-col items-center justify-center min-w-[60px] h-20 rounded-2xl border transition-all ${isSameDay(date, selectedDate)
-                            ? 'border-teal-500 bg-teal-50 text-teal-700 shadow-md'
-                            : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300 shadow-sm'
+                            ? 'border-blue-500 bg-blue-600 text-white shadow-md'
+                            : 'border-gray-800 bg-gray-900 text-gray-400 hover:border-gray-700 shadow-sm'
                             }`}
                     >
                         <span className="text-xs font-bold uppercase">
-                            {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                            {date.toLocaleDateString(language, { weekday: 'short' })}
                         </span>
                         <span className="text-xl font-bold">
                             {date.getDate()}
@@ -104,28 +89,22 @@ function Home() {
 
             {loading ? (
                 <div className="flex justify-center mt-20">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-teal-500"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-blue-500"></div>
                 </div>
             ) : (
                 <div className="grid grid-cols-2 gap-4">
-                    {sports.length === 0 ? (
-                        <div className="col-span-2 text-center text-gray-500 mt-10">
-                            No sports active for this date.
-                        </div>
-                    ) : (
-                        sports.map((sport) => (
-                            <div
-                                key={sport.id}
-                                onClick={() => handleSportClick(sport)}
-                                className="bg-white p-4 rounded-2xl flex flex-col items-center justify-center gap-3 active:scale-95 transition-transform cursor-pointer hover:shadow-md border border-gray-100 shadow-sm"
-                            >
-                                <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center border border-gray-100">
-                                    <Layers className="text-teal-600" />
-                                </div>
-                                <span className="font-semibold text-center text-sm text-gray-800">{sport.name}</span>
+                    {sports.map((sport) => (
+                        <div
+                            key={sport.id}
+                            onClick={() => handleSportClick(sport)}
+                            className="bg-gray-900 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 active:scale-95 transition-transform cursor-pointer hover:shadow-lg border border-gray-800 hover:border-blue-500/30"
+                        >
+                            <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center border border-gray-700">
+                                <Layers className="text-blue-400" />
                             </div>
-                        ))
-                    )}
+                            <span className="font-semibold text-center text-sm text-gray-200">{sport.name}</span>
+                        </div>
+                    ))}
                 </div>
             )}
         </div>
