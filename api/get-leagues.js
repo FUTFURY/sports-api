@@ -18,10 +18,11 @@ export default async function handler(req, res) {
     const {
         dateFrom = "1770211200",
         dateTo = "1770297600",
-        sportId = "1" // Default Football
+        sportId = "1", // Default Football
+        lng = "fr"
     } = req.query;
 
-    const url = `https://sa.1xbet.com/service-api/result/web/api/v2/champs?dateFrom=${dateFrom}&dateTo=${dateTo}&lng=fr&ref=1&sportIds=${sportId}`;
+    const url = `https://sa.1xbet.com/service-api/result/web/api/v2/champs?dateFrom=${dateFrom}&dateTo=${dateTo}&lng=${lng}&ref=1&sportIds=${sportId}`;
 
     // 3. Secure Headers (from Env Vars)
     const headers = {

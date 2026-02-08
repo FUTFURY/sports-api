@@ -17,8 +17,9 @@ export default async function handler(req, res) {
     }
 
     // 2. Define 1xBet Live URL
+    const { lng = "fr" } = req.query;
     // Use service-api mirror to bypass redirects/blocks
-    const url = `https://sa.1xbet.com/service-api/LiveFeed/Get1x2_VZip?sports=1&count=50&lng=fr&mode=4&country=1&partner=159&getEmpty=true&noFilterBlockEvent=true`;
+    const url = `https://sa.1xbet.com/service-api/LiveFeed/Get1x2_VZip?sports=1&count=50&lng=${lng}&mode=4&country=1&partner=159&getEmpty=true&noFilterBlockEvent=true`;
 
     // 3. Secure Headers (sharing same env vars as get-games)
     const headers = {

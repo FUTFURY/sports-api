@@ -19,11 +19,12 @@ export default async function handler(req, res) {
     const {
         champId = "119237",
         dateFrom = "1770211200",
-        dateTo = "1770297600"
+        dateTo = "1770297600",
+        lng = "fr"
     } = req.query;
 
     // 3. Define 1xBet URL (v3/games)
-    const url = `https://sa.1xbet.com/service-api/result/web/api/v3/games?champId=${champId}&dateFrom=${dateFrom}&dateTo=${dateTo}&lng=fr&ref=1`;
+    const url = `https://sa.1xbet.com/service-api/result/web/api/v3/games?champId=${champId}&dateFrom=${dateFrom}&dateTo=${dateTo}&lng=${lng}&ref=1`;
 
     // 4. Secure Headers (from Env Vars)
     // CRITICAL: These allow bypassing the 403/203 blocks
