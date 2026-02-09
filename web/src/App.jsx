@@ -5,6 +5,7 @@ import Leagues from './pages/Leagues';
 import Games from './pages/Games';
 import Search from './pages/Search';
 
+import GameDetails from './pages/GameDetails';
 import { LanguageProvider } from './contexts/LanguageContext';
 import Layout from './components/Layout';
 
@@ -17,6 +18,7 @@ function App() {
                         <Route path="/" element={<Home />} />
                         <Route path="/leagues/:sportId" element={<Leagues />} />
                         <Route path="/games/:champId" element={<Games />} />
+                        <Route path="/game/:id" element={<GameDetails />} />
                         <Route path="/search" element={<Search />} />
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>

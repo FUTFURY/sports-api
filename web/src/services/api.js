@@ -54,6 +54,18 @@ export const getLiveGames = async (lng = 'fr') => {
     }
 };
 
+export const getGameStats = async (id, lng = 'fr') => {
+    try {
+        const response = await api.get('/get-game-stats', {
+            params: { id, lng }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching game stats:", error);
+        return null;
+    }
+};
+
 export const searchEvents = async (text, lng = 'fr') => {
     try {
         const response = await api.get('/search', {

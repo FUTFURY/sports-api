@@ -66,9 +66,20 @@ function Games() {
                             >
                                 <div className="flex justify-between items-center mb-3 text-sm text-gray-400 font-medium">
                                     <span>Match</span>
-                                    <span className="text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">
-                                        {game.score || "VS"}
-                                    </span>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                navigate(`/game/${game.id}`);
+                                            }}
+                                            className="text-xs bg-indigo-500/20 text-indigo-300 px-2 py-1 rounded hover:bg-indigo-500/30 transition-colors border border-indigo-500/30"
+                                        >
+                                            Details
+                                        </button>
+                                        <span className="text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">
+                                            {game.score || "VS"}
+                                        </span>
+                                    </div>
                                 </div>
 
                                 {/* Clickable Area to Toggle Heatmap */}
