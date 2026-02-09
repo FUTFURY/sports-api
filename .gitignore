@@ -20,3 +20,4 @@ headers_results.json
 # Build outputs
 dist/
 build/
+.vscode/
