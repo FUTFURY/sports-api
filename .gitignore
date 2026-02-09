@@ -1,9 +1,11 @@
 # Node
 node_modules/
 npm-debug.log
+package-lock.json
 
-# Python (Prototypes)
+# Python
 venv/
+.venv/
 __pycache__/
 *.pyc
 
@@ -13,5 +15,8 @@ __pycache__/
 # Sensitive / Local
 fresh_cookies.txt
 .env
-prototypes/headers_results.json
 headers_results.json
+
+# Build outputs
+dist/
+build/
