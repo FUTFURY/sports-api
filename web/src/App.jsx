@@ -13,16 +13,20 @@ function App() {
     return (
         <LanguageProvider>
             <Router>
-                <Layout>
-                    <Routes>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/leagues/:sportId" element={<Leagues />} />
-                        <Route path="/games/:champId" element={<Games />} />
-                        <Route path="/game/:id" element={<GameDetails />} />
-                        <Route path="/search" element={<Search />} />
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
-                </Layout>
+                <Routes>
+                    <Route path="/game/:id" element={<GameDetails />} />
+                    <Route path="*" element={
+                        <Layout>
+                            <Routes>
+                                <Route path="/" element={<Home />} />
+                                <Route path="/leagues/:sportId" element={<Leagues />} />
+                                <Route path="/games/:champId" element={<Games />} />
+                                <Route path="/search" element={<Search />} />
+                                <Route path="*" element={<Navigate to="/" replace />} />
+                            </Routes>
+                        </Layout>
+                    } />
+                </Routes>
             </Router>
         </LanguageProvider>
     );

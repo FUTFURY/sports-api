@@ -20,7 +20,10 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Game ID is required" });
     }
 
-    const url = `https://sa.1xbet.com/service-api/LiveFeed/GetGameZip?id=${id}&lng=${lng}&isSubGames=true&grouped=true`;
+    // URL for Live Games
+    const liveUrl = `https://sa.1xbet.com/service-api/LiveFeed/GetGameZip?id=${id}&lng=${lng}&isSubGames=true&grouped=true`;
+    // URL for Pre-match/Line Games (fallback)
+    const lineUrl = `https://sa.1xbet.com/service-api/LineFeed/GetGameZip?id=${id}&lng=${lng}&isSubGames=true&grouped=true`;
 
     const headers = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
@@ -30,16 +33,21 @@ export default async function handler(req, res) {
     };
 
     try {
-        const response = await fetch(url, { headers });
-        if (!response.ok) {
-            return res.status(response.status).json({ error: "1xBet API Error" });
+        // Try Live Feed First
+        let response = await fetch(liveUrl, { headers });
+        let data = await response.json();
+        let game = data.Value;
+
+        // If not found in Live, try Line Feed
+        if (!game) {
+            console.log(`Game ${id} not found in LiveFeed, trying LineFeed...`);
+            response = await fetch(lineUrl, { headers });
+            data = await response.json();
+            game = data.Value;
         }
 
-        const data = await response.json();
-        const game = data.Value;
-
         if (!game) {
-            return res.status(404).json({ error: "Game not found" });
+            return res.status(404).json({ error: "Game not found in Live or Line feed" });
         }
 
         // Parse Stats

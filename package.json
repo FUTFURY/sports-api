@@ -3,5 +3,9 @@
     "version": "1.0.0",
     "description": "Serverless proxy for sports data",
     "type": "module",
-    "main": "api/index.js"
+    "main": "api/index.js",
+    "dependencies": {
+        "cors": "^2.8.6",
+        "express": "^5.2.1"
+    }
 }

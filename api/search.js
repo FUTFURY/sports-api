@@ -67,12 +67,40 @@ export default async function handler(req, res) {
             return res.status(response.status).json({ error: "1xBet Secure API Error", details: await response.text() });
         }
 
-        // Handle ZSTD or GZIP decompression
-        // Node fetch might handle gzip automatically, but zstd usually requires manual handling
-        // For simplicity in Vercel environment, we rely on standard fetch handling unless zstd is explicitly needed
-        // The browser user-agent usually requests br/gzip
+        // Handle GZIP/DEFLATE decompression
+        // The API returns compressed data but doesn't always set content-encoding header
+        const buffer = Buffer.from(await response.arrayBuffer());
 
-        const data = await response.json();
+        // Auto-detect compression by checking magic bytes
+        // GZIP magic bytes: 0x1f 0x8b
+        // DEFLATE/ZLIB magic bytes: 0x78 (followed by various compression levels)
+        const isGzip = buffer.length >= 2 && buffer[0] === 0x1f && buffer[1] === 0x8b;
+        const isDeflate = buffer.length >= 2 && buffer[0] === 0x78;
+
+        let decompressed;
+        if (isGzip) {
+            console.log('Detected GZIP compression, decompressing...');
+            decompressed = await new Promise((resolve, reject) => {
+                zlib.gunzip(buffer, (err, result) => {
+                    if (err) reject(err);
+                    else resolve(result.toString('utf-8'));
+                });
+            });
+        } else if (isDeflate) {
+            console.log('Detected DEFLATE compression, decompressing...');
+            decompressed = await new Promise((resolve, reject) => {
+                zlib.inflate(buffer, (err, result) => {
+                    if (err) reject(err);
+                    else resolve(result.toString('utf-8'));
+                });
+            });
+        } else {
+            // No compression detected
+            console.log('No compression detected, parsing as plain text');
+            decompressed = buffer.toString('utf-8');
+        }
+
+        const data = JSON.parse(decompressed);
 
         // 5. Transform Data to match our Frontend Schema
         // The secure API returns: { Value: [ { N: "Team Name", ... } ] }

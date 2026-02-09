@@ -1,6 +1,12 @@
 import axios from 'axios';
 
-const API_URL = 'https://sports-api-hazel.vercel.app/api';
+// During development, we want to hit the local server if we are running it, 
+// or the production server. 
+// For now, let's assume the user IS running the backend locally on port 3000 (standard for Vercel dev)
+// OR we can make it relative if served from same origin.
+
+// Strategy: Use an environment variable or default to local for dev
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export const api = axios.create({
     baseURL: API_URL,
