@@ -1,14 +1,15 @@
 {
-    "name": "sports-aggregator-api",
+    "name": "sports-aggregator-monorepo",
     "version": "1.0.0",
-    "description": "Serverless proxy for sports data",
-    "type": "module",
-    "main": "api/index.js",
-    "dependencies": {
-        "@supabase/supabase-js": "^2.95.3",
-        "axios": "^1.13.5",
-        "cors": "^2.8.6",
-        "express": "^5.2.1",
-        "node-fetch": "^3.3.2"
+    "private": true,
+    "workspaces": [
+        "frontend",
+        "services/*"
+    ],
+    "scripts": {
+        "start:bot": "cd services/bot-service && npm start"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.0"
     }
 }
