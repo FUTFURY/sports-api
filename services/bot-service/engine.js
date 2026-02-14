@@ -1,5 +1,6 @@
 
 import fs from 'fs/promises';
+import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
 
 // CONFIGURATION
@@ -23,7 +24,7 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const toPrice = (odds) => (1 / odds) * 100;
 
 async function fetchMatchData() {
-    const url = `http://localhost:3001/match/${MATCH_ID}`;
+    const url = `http://localhost:3000/api/scores/match/${MATCH_ID}`;
 
     try {
         const res = await fetch(url);

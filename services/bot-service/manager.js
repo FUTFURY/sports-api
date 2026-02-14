@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const DATA_SERVICE_URL = 'http://localhost:3001';
+const DATA_SERVICE_URL = 'http://localhost:3000/api/scores';
 const POLL_INTERVAL = 10000;
 
 // Track running bots: matchId -> process
@@ -14,7 +14,7 @@ const runningBots = new Map();
 
 async function getLiveMatches() {
     try {
-        const res = await fetch(`${DATA_SERVICE_URL}/matches/live`);
+        const res = await fetch(`${DATA_SERVICE_URL}/matches-live`);
         if (!res.ok) throw new Error('Data Service unreachable');
         const data = await res.json();
         return data.matches || [];
