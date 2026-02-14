@@ -11,7 +11,6 @@ const nextConfig = {
         contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     },
     trailingSlash: false,
-    output: 'standalone',
 };
 
 export default nextConfig;
