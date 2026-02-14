@@ -1,17 +1,15 @@
+'use client';
+
 import "./globals.css";
 import { AuthProvider } from '../context/AuthContext';
-import Navbar from '../components/Navbar';
+import dynamic from 'next/dynamic';
 
-export const metadata = {
-    title: "SportsTrade",
-    description: "Live Sports Trading Platform",
-};
+const Navbar = dynamic(() => import('../components/Navbar'), { ssr: false });
 
 export default function RootLayout({ children }) {
     return (
         <html lang="en">
             <head>
-                {/* Fonts can be loaded here if needed, or via next/font/google if properly configured */}
             </head>
             <body className="antialiased min-h-screen bg-slate-950 text-slate-50">
                 <AuthProvider>
