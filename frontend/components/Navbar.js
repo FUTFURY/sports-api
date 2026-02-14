@@ -10,10 +10,15 @@ export default function Navbar() {
     const { user, profile, signOut, refreshProfile } = useAuth();
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    // Add mounted state to prevent hydration mismatch
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const handleLogout = async () => {
         await signOut();
-        // signOut now handles redirect
     };
 
     const handleRefreshBalance = async () => {
@@ -21,6 +26,19 @@ export default function Navbar() {
         await refreshProfile();
         setTimeout(() => setRefreshing(false), 500);
     };
+
+    // Prevent hydration mismatch by rendering simpler version on server/initial load
+    if (!mounted) {
+        return (
+            <nav className="border-b border-white/5 bg-slate-950/50 backdrop-blur-md sticky top-0 z-50">
+                <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+                    <Link href="/" className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
+                        SportsTrade
+                    </Link>
+                </div>
+            </nav>
+        );
+    }
 
     return (
         <nav className="border-b border-white/5 bg-slate-950/50 backdrop-blur-md sticky top-0 z-50">
@@ -31,8 +49,8 @@ export default function Navbar() {
 
                 <div className="flex items-center gap-4">
                     {user ? (
-                        <>
-                            {/* BALANCE DISPLAY avec bouton refresh */}
+                        <div className="flex items-center gap-4">
+                            {/* BALANCE DISPLAY */}
                             <div className="bg-slate-800/50 px-4 py-2 rounded-full border border-slate-700/50 flex items-center gap-3">
                                 <div className="flex flex-col">
                                     <span className="text-[10px] text-slate-500 uppercase tracking-wider">Balance</span>
@@ -41,7 +59,6 @@ export default function Navbar() {
                                     </span>
                                 </div>
 
-                                {/* Refresh Button */}
                                 <button
                                     onClick={handleRefreshBalance}
                                     disabled={refreshing}
@@ -52,15 +69,16 @@ export default function Navbar() {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                     </svg>
                                 </button>
+                            </div>
 
-                                {/* User Avatar */}
-                                <button
-                                    onClick={() => setDropdownOpen(!dropdownOpen)}
-                                    className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-sm font-bold ring-2 ring-blue-500/50 hover:ring-blue-400 transition-all"
+                            {/* User Avatar */}
+                            {user.email && (
+                                <div
+                                    className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-sm font-bold ring-2 ring-blue-500/50"
                                 >
                                     {user.email[0].toUpperCase()}
-                                </button>
-                            </div>
+                                </div>
+                            )}
 
                             {/* LOGOUT BUTTON */}
                             <button
@@ -69,7 +87,7 @@ export default function Navbar() {
                             >
                                 Logout
                             </button>
-                        </>
+                        </div>
                     ) : (
                         <Link
                             href="/login"
