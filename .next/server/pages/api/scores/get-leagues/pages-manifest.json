@@ -1,0 +1,3 @@
+{
+  "/api/scores/get-leagues": "pages/api/scores/get-leagues.js"
+}

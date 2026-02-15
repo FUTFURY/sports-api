@@ -1,0 +1,3 @@
+{
+  "/api/scores/get-games": "pages/api/scores/get-games.js"
+}

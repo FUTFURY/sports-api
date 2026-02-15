@@ -1,0 +1,125 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "pages",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/api/scores/match/[id]",
+      "regex": "^/api/scores/match/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/scores/match/(?<nxtPid>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/api/scores/get-game-stats",
+      "regex": "^/api/scores/get\\-game\\-stats(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/scores/get\\-game\\-stats(?:/)?$"
+    },
+    {
+      "page": "/api/scores/get-games",
+      "regex": "^/api/scores/get\\-games(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/scores/get\\-games(?:/)?$"
+    },
+    {
+      "page": "/api/scores/get-leagues",
+      "regex": "^/api/scores/get\\-leagues(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/scores/get\\-leagues(?:/)?$"
+    },
+    {
+      "page": "/api/scores/get-live-games",
+      "regex": "^/api/scores/get\\-live\\-games(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/scores/get\\-live\\-games(?:/)?$"
+    },
+    {
+      "page": "/api/scores/get-match",
+      "regex": "^/api/scores/get\\-match(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/scores/get\\-match(?:/)?$"
+    },
+    {
+      "page": "/api/scores/get-sports",
+      "regex": "^/api/scores/get\\-sports(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/scores/get\\-sports(?:/)?$"
+    },
+    {
+      "page": "/api/scores/get-standings",
+      "regex": "^/api/scores/get\\-standings(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/scores/get\\-standings(?:/)?$"
+    },
+    {
+      "page": "/api/scores/matches-live",
+      "regex": "^/api/scores/matches\\-live(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/scores/matches\\-live(?:/)?$"
+    },
+    {
+      "page": "/api/scores/search",
+      "regex": "^/api/scores/search(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/scores/search(?:/)?$"
+    },
+    {
+      "page": "/api/trading/buy",
+      "regex": "^/api/trading/buy(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/trading/buy(?:/)?$"
+    },
+    {
+      "page": "/api/trading/sell",
+      "regex": "^/api/trading/sell(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/trading/sell(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

@@ -1,0 +1,3 @@
+{
+  "/api/scores/match/[id]": "pages/api/scores/match/[id].js"
+}

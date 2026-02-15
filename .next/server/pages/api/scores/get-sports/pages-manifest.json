@@ -1,0 +1,3 @@
+{
+  "/api/scores/get-sports": "pages/api/scores/get-sports.js"
+}

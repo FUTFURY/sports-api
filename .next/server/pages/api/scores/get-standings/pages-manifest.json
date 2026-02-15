@@ -1,0 +1,3 @@
+{
+  "/api/scores/get-standings": "pages/api/scores/get-standings.js"
+}
