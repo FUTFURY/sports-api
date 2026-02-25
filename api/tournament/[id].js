@@ -1,16 +1,7 @@
-import { fetchTournamentDetails } from '../../../services/1xbetService.js';
-import cors from '../../../utils/cors.js';
+import { fetchTournamentDetails } from '../../services/1xbetService.js';
+import { withCors } from '../../utils/cors.js';
 
-export default async function handler(req, res) {
-    // Enable CORS
-    cors(req, res);
-
-    // Handle OPTIONS request
-    if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
-    }
-
+const handler = async (req, res) => {
     const { id } = req.query;
 
     if (!id) {
@@ -30,3 +21,5 @@ export default async function handler(req, res) {
         res.status(500).json({ error: 'Failed to fetch tournament details' });
     }
 }
+
+export default withCors(handler);
