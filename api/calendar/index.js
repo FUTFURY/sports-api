@@ -1,4 +1,4 @@
-import { fetchUpcomingMatches } from '../../services/1xbetService.js';
+import { fetchUpcomingMatches, fetchPastMatches, fetchLiveMatches } from '../../services/1xbetService.js';
 import { withCors } from '../../utils/cors.js';
 
 const handler = async (req, res) => {
@@ -9,18 +9,31 @@ const handler = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Date parameter (YYYY-MM-DD) is required.' });
         }
 
-        const requestedDate = new Date(date).setHours(0, 0, 0, 0);
+        const requestedDateTime = new Date(date);
+        const requestedDate = requestedDateTime.setHours(0, 0, 0, 0);
         const nextDate = new Date(requestedDate).setDate(new Date(requestedDate).getDate() + 1);
+        const today = new Date().setHours(0, 0, 0, 0);
 
-        const upcoming = await fetchUpcomingMatches();
+        let filtered = [];
 
-        // Filter by timestamp 'S'.
-        // 1xbet uses Unix timestamp in seconds for 'S'
-        const filtered = upcoming.filter(match => {
-            if (!match.startTime) return false;
-            const matchTimeMs = match.startTime * 1000; // Convert to JS ms
-            return matchTimeMs >= requestedDate && matchTimeMs < nextDate;
-        });
+        if (requestedDate < today) {
+            // It's a past date, fetch past results using new API
+            filtered = await fetchPastMatches(date);
+        } else {
+            // It's today or future, fetch upcoming (and potentially live)
+            const [upcoming, live] = await Promise.all([
+                fetchUpcomingMatches(),
+                fetchLiveMatches()
+            ]);
+
+            const allActive = [...live, ...upcoming];
+
+            filtered = allActive.filter(match => {
+                if (!match.startTime) return false;
+                const matchTimeMs = match.startTime * 1000;
+                return matchTimeMs >= requestedDate && matchTimeMs < nextDate;
+            });
+        }
 
         res.status(200).json({
             success: true,

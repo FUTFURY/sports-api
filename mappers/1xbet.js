@@ -107,8 +107,72 @@ export const mapPlayerDetails = (data) => {
     };
 };
 
+export const mapPastMatch = (matchData) => {
+    if (!matchData) return null;
+
+    // Parse score string like: "0:3 (1:6,2:6,4:6) (222221...)"
+    let sets = {};
+    let s1 = 0, s2 = 0;
+
+    if (matchData.score) {
+        const parts = matchData.score.split(' (');
+        const mainScore = parts[0].split(':');
+        s1 = parseInt(mainScore[0]) || 0;
+        s2 = parseInt(mainScore[1]) || 0;
+
+        if (parts.length > 1) {
+            const setsStr = parts[1].replace(')', ''); // "1:6,2:6,4:6"
+            const setsArr = setsStr.split(',');
+            setsArr.forEach((s, idx) => {
+                const sp = s.split(':');
+                sets[`S1`] = (sets[`S1`] || {});
+                sets[`S2`] = (sets[`S2`] || {});
+                sets[`S1`][idx] = parseInt(sp[0]) || 0;
+                sets[`S2`][idx] = parseInt(sp[1]) || 0;
+            });
+        }
+    }
+
+    return {
+        id: matchData.id,
+        tournamentId: matchData.champId,
+        tournamentName: matchData.champName,
+
+        player1: matchData.opp1,
+        player1Id: matchData.opp1Ids?.[0],
+        player1Image: matchData.opp1Images?.[0],
+
+        player2: matchData.opp2,
+        player2Id: matchData.opp2Ids?.[0],
+        player2Image: matchData.opp2Images?.[0],
+
+        startTime: matchData.dateStart,
+
+        score: {
+            sets: sets,
+            gamesPlayer1: s1,
+            gamesPlayer2: s2,
+            currentSetScore: null // Past match, so no current game point score
+        },
+
+        isLive: false,
+        isFinished: true, // Marker for frontend that this is a historical result
+        stats: matchData.subGame ? matchData.subGame.map(sg => {
+            const points = sg.score.split(' ')[0].split(':');
+            return {
+                name: sg.title,
+                p1: parseFloat(points[0]) || 0,
+                p2: parseFloat(points[1]) || 0
+            };
+        }) : null,
+        odds: null,
+        marketCount: 0
+    };
+};
+
 export default {
     mapMatch,
+    mapPastMatch,
     mapScore,
     mapStats,
     mapTournament,

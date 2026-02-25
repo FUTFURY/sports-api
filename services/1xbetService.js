@@ -1,6 +1,6 @@
 import { gotScraping } from 'got-scraping';
 import cache from '../utils/cache.js';
-import { mapMatch, mapTournament, mapRanking, mapPlayerDetails } from '../mappers/1xbet.js';
+import { mapMatch, mapTournament, mapRanking, mapPlayerDetails, mapPastMatch } from '../mappers/1xbet.js';
 
 // Configuration du domaine et des constantes
 const MAIN_BASE_URL = 'https://sa.1xbet.com';
@@ -18,10 +18,21 @@ const COMMON_HEADERS = {
     'Accept-Encoding': 'gzip, deflate, br'
 };
 
+const BFF_HEADERS = {
+    'User-Agent': "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+    'Accept': 'application/json, text/plain, */*',
+    'Accept-Language': 'fr,en-US;q=0.9,en;q=0.8',
+    'Origin': 'https://sa.1xbet.com',
+    'Referer': 'https://sa.1xbet.com/en/results',
+    'x-app-n': '__RESULTS_FRONTEND__',
+    'x-requested-with': 'XMLHttpRequest',
+    'x-svc-source': '__RESULTS_FRONTEND__'
+};
+
 // Helper pour faire les requêtes via gotScraping
-async function scrapingGet(url) {
+async function scrapingGet(url, customHeaders = null) {
     const response = await gotScraping.get(url, {
-        headers: COMMON_HEADERS,
+        headers: customHeaders || COMMON_HEADERS,
         responseType: 'json'
     });
     return response.body;
@@ -95,6 +106,73 @@ export const fetchTournaments = async () => {
         return normalized;
     } catch (error) {
         console.error('Error deriving tournaments:', error.message);
+        return [];
+    }
+};
+
+export const fetchPastMatches = async (date) => {
+    // Expected format for date parameter: 'YYYY-MM-DD'
+    const [year, month, day] = date.split('-').map(Number);
+    // 1xBet expects exactly 21:00:00 UTC of previous day to 21:00:00 UTC of current day for its result queries
+    const requestedDate = Date.UTC(year, month - 1, day);
+    const tsFrom = Math.floor(requestedDate / 1000) - (3600 * 3); // 21:00 previous day
+    const tsTo = tsFrom + 86400; // 21:00 current day
+
+    const cacheKey = `past_matches_${tsFrom}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return cached;
+
+    try {
+        const champsUrl = `${MAIN_BASE_URL}/service-api/result/web/api/v2/champs?dateFrom=${tsFrom}&dateTo=${tsTo}&lng=en&ref=1&sportIds=${SPORT_ID_TENNIS}`;
+        console.log("Fetching champs URL:", champsUrl);
+
+        let champsData;
+        try {
+            // Include cookie from test since v2/champs requires varying auth or is more strict.
+            const customHeaders = {
+                ...BFF_HEADERS,
+                'Cookie': 'SESSION=80016c4acd5f2d7df457a551ba7acd14'
+            };
+            const rawBody = await scrapingGet(champsUrl, customHeaders);
+            champsData = typeof rawBody === 'string' ? JSON.parse(rawBody) : rawBody;
+        } catch (e) {
+            console.error('Cannot retrieve champs on this date:', e.message);
+            return [];
+        }
+
+        const champs = champsData?.items || [];
+        console.log(`Found ${champs.length} champs.`);
+        if (!champs.length) return [];
+
+        let allMatches = [];
+
+        // Use Promise.all to fetch games for each championship concurrently, with a small concurrency limit if needed.
+        // For standard size, doing it directly is usually fine.
+        const promises = champs.map(async (champ) => {
+            const gamesUrl = `${MAIN_BASE_URL}/service-api/result/web/api/v3/games?champId=${champ.id}&dateFrom=${tsFrom}&dateTo=${tsTo}&lng=en&ref=1`;
+            try {
+                const rawGames = await scrapingGet(gamesUrl, BFF_HEADERS);
+                const gamesData = typeof rawGames === 'string' ? JSON.parse(rawGames) : rawGames;
+                if (gamesData?.items && Array.isArray(gamesData.items)) {
+                    return gamesData.items.map(mapPastMatch).filter(Boolean);
+                }
+            } catch (e) {
+                // Ignore silent specific champ errors to retrieve others
+            }
+            return [];
+        });
+
+        const resultsArray = await Promise.all(promises);
+
+        // Flatten
+        for (const res of resultsArray) {
+            allMatches = allMatches.concat(res);
+        }
+
+        cache.set(cacheKey, allMatches, 3600 * 24); // Cache for 24h since past matches do not change
+        return allMatches;
+    } catch (e) {
+        console.error('Error fetching past matches:', e.message);
         return [];
     }
 };
@@ -221,5 +299,6 @@ export default {
     getATPTop100,
     getWTATop100,
     fetchPlayerDetails,
-    fetchTournamentDetails
+    fetchTournamentDetails,
+    fetchPastMatches
 };
