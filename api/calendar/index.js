@@ -1,4 +1,4 @@
-import { fetchUpcomingMatches, fetchPastMatches, fetchLiveMatches } from '../../services/1xbetService.js';
+import { fetchUpcomingMatches, fetchPastMatches, fetchLiveMatches, fetchFutureMatches } from '../../services/1xbetService.js';
 import { withCors } from '../../utils/cors.js';
 
 const handler = async (req, res) => {
@@ -16,14 +16,16 @@ const handler = async (req, res) => {
 
         let filtered = [];
 
+        const sport = parseInt(req.query.sport) || 4; // Defaults to Tennis
+
         if (requestedDate < today) {
             // It's a past date, fetch past results using new API
             filtered = await fetchPastMatches(date);
-        } else {
-            // It's today or future, fetch upcoming (and potentially live)
+        } else if (requestedDate === today) {
+            // It's today, fetch live + upcoming imminent
             const [upcoming, live] = await Promise.all([
-                fetchUpcomingMatches(),
-                fetchLiveMatches()
+                fetchUpcomingMatches(sport),
+                fetchLiveMatches() // Live API usually covers all sports but we filter later
             ]);
 
             const allActive = [...live, ...upcoming];
@@ -33,6 +35,9 @@ const handler = async (req, res) => {
                 const matchTimeMs = match.startTime * 1000;
                 return matchTimeMs >= requestedDate && matchTimeMs < nextDate;
             });
+        } else {
+            // It's a future date, use Get1x2_Zip for targeted day
+            filtered = await fetchFutureMatches(date, sport);
         }
 
         res.status(200).json({

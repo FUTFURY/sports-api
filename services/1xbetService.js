@@ -58,13 +58,13 @@ export const fetchLiveMatches = async () => {
     }
 };
 
-export const fetchUpcomingMatches = async () => {
-    const cacheKey = 'upcoming_matches';
+export const fetchUpcomingMatches = async (sportId = SPORT_ID_TENNIS) => {
+    const cacheKey = `upcoming_matches_${sportId}`;
     const cached = cache.get(cacheKey);
     if (cached) return cached;
 
     try {
-        const url = `${MAIN_BASE_URL}/service-api/LineFeed/Get1x2_VZip?sports=${SPORT_ID_TENNIS}&count=500&lng=en&mode=4&country=158&getEmpty=true&virtualSports=true`;
+        const url = `${MAIN_BASE_URL}/service-api/LineFeed/Get1x2_VZip?sports=${sportId}&count=500&lng=en&mode=4&country=158&getEmpty=true&virtualSports=true`;
         const data = await scrapingGet(url);
         const matches = data?.Value || [];
         const normalized = matches.map(mapMatch).filter(Boolean);
@@ -72,6 +72,32 @@ export const fetchUpcomingMatches = async () => {
         return normalized;
     } catch (error) {
         console.error('Error fetching upcoming matches:', error.message);
+        return [];
+    }
+};
+
+export const fetchFutureMatches = async (date, sportId = SPORT_ID_TENNIS) => {
+    // date: YYYY-MM-DD
+    const [year, month, day] = date.split('-').map(Number);
+    // Align with 1xbet day logic (approximated)
+    const startOfDay = Date.UTC(year, month - 1, day);
+    const tsFrom = Math.floor(startOfDay / 1000) - (3600 * 3); // 21:00 previous day
+    const tsTo = tsFrom + 86400;
+
+    const cacheKey = `future_matches_${sportId}_${date}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return cached;
+
+    try {
+        // Use Get1x2_Zip (without V) as it supports deep future timestamps
+        const url = `${MAIN_BASE_URL}/service-api/LineFeed/Get1x2_Zip?sports=${sportId}&tsFrom=${tsFrom}&tsTo=${tsTo}&count=500&lng=en&mode=4&country=158&getEmpty=true&virtualSports=true`;
+        const data = await scrapingGet(url);
+        const matches = data?.Value || [];
+        const normalized = matches.map(mapMatch).filter(Boolean);
+        cache.set(cacheKey, normalized, 300);
+        return normalized;
+    } catch (error) {
+        console.error(`Error fetching future matches for ${date}:`, error.message);
         return [];
     }
 };
@@ -124,7 +150,6 @@ export const fetchPastMatches = async (date) => {
 
     try {
         const champsUrl = `${MAIN_BASE_URL}/service-api/result/web/api/v2/champs?dateFrom=${tsFrom}&dateTo=${tsTo}&lng=en&ref=1&sportIds=${SPORT_ID_TENNIS}`;
-        console.log("Fetching champs URL:", champsUrl);
 
         let champsData;
         try {
