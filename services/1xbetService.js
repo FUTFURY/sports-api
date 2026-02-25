@@ -46,7 +46,7 @@ export const fetchLiveMatches = async () => {
     if (cached) return cached;
 
     try {
-        const url = `${MAIN_BASE_URL}/service-api/LiveFeed/Get1x2_VZip?sports=${SPORT_ID_TENNIS}&count=40&lng=en&mode=4&country=158&getEmpty=true&virtualSports=true&noFilterBlockEvent=true`;
+        const url = `${MAIN_BASE_URL}/service-api/LiveFeed/Get1x2_VZip?sports=${SPORT_ID_TENNIS}&count=500&lng=en&mode=4&country=158&getEmpty=true&virtualSports=true&noFilterBlockEvent=true`;
         const data = await scrapingGet(url);
         const matches = data?.Value || [];
         const normalized = matches.map(mapMatch).filter(Boolean);
@@ -64,7 +64,7 @@ export const fetchUpcomingMatches = async () => {
     if (cached) return cached;
 
     try {
-        const url = `${MAIN_BASE_URL}/service-api/LineFeed/Get1x2_VZip?sports=${SPORT_ID_TENNIS}&count=40&lng=en&mode=4&country=158&getEmpty=true&virtualSports=true`;
+        const url = `${MAIN_BASE_URL}/service-api/LineFeed/Get1x2_VZip?sports=${SPORT_ID_TENNIS}&count=500&lng=en&mode=4&country=158&getEmpty=true&virtualSports=true`;
         const data = await scrapingGet(url);
         const matches = data?.Value || [];
         const normalized = matches.map(mapMatch).filter(Boolean);
