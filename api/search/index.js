@@ -1,11 +1,8 @@
-import { gotScraping } from 'got-scraping';
 import express from 'express';
 import { mapMatch } from '../../mappers/1xbet.js';
+import { searchEntitiesRobust, searchEventsRobust } from '../../services/robustSearchService.js';
 
 const searchDev = express.Router();
-
-const EVENTSSTAT_CORE_SEARCH = 'https://eventsstat.com/fr/services-api/core-api/v1/search';
-const X1BET_EVENT_SEARCH = 'https://sa.1xbet.com/service-api/LineFeed/Web_SearchZip';
 
 searchDev.get('/search', async (req, res) => {
     const query = req.query.q;
@@ -16,22 +13,15 @@ searchDev.get('/search', async (req, res) => {
     }
 
     try {
-        // Lancement des deux recherches en parallèle pour plus de rapidité
+        // Lancement des deux recherches via le service ROBUSTE (rotation de domaines)
         const [entityResponse, eventResponse] = await Promise.allSettled([
-            // 1. Recherche d'ENTITÉS (Equipes, Joueurs, Ligues permanentes)
-            gotScraping.get(`${EVENTSSTAT_CORE_SEARCH}?search=${encodeURIComponent(query)}&sportId=${sportId}&lng=fr&ref=1&fcountry=91&gr=285`, {
-                responseType: 'json',
-                headers: { 'Referer': 'https://eventsstat.com/fr/statistic/', 'Origin': 'https://eventsstat.com' }
-            }),
-            // 2. Recherche d'ÉVÉNEMENTS (Matchs réels et directs via 1xBet)
-            gotScraping.get(`${X1BET_EVENT_SEARCH}?text=${encodeURIComponent(query)}&limit=20&lng=fr&country=158&mode=4`, {
-                responseType: 'json'
-            })
+            searchEntitiesRobust(query, sportId),
+            searchEventsRobust(query)
         ]);
 
-        // Traitement des Entités (S'assurer que ça ne crash pas tout si le serveur est down)
+        // Traitement des Entités
         const rawEntities = entityResponse.status === 'fulfilled' ?
-            (entityResponse.value.body?.data || []) : [];
+            (entityResponse.value?.data || []) : [];
 
         if (entityResponse.status === 'rejected') {
             console.error('⚠️ EventsStat Entities side failed:', entityResponse.reason.message);
@@ -52,7 +42,7 @@ searchDev.get('/search', async (req, res) => {
 
         // Traitement des Événements
         const rawEvents = eventResponse.status === 'fulfilled' ?
-            (eventResponse.value.body?.Value || []) : [];
+            (eventResponse.value?.Value || []) : [];
 
         if (eventResponse.status === 'rejected') {
             console.error('⚠️ 1xBet Events side failed:', eventResponse.reason.message);
