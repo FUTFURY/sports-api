@@ -1,0 +1,8 @@
+.git
+.agents
+node_modules
+*.mjs
+test_*
+*.png
+*.jpg
+README.md

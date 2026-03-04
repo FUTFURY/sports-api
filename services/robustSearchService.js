@@ -1,69 +1,58 @@
-import { gotScraping } from 'got-scraping';
+// robustSearchService.js
+// Handles domain rotation to bypass IP blocks in serverless environments like Vercel.
 
-/**
- * Robust Search Service
- * Rotates through multiple domains to bypass IP blocks (like Vercel).
- */
-
-const X1BET_DOMAINS = [
+const XBET_MIRRORS = [
     'https://sa.1xbet.com',
-    'https://1xbet.com',
     'https://1xbet.pe',
     'https://1xbet.mobi',
-    'https://1xbet.xyz',
-    'https://1xbet.sh'
+    'https://1xbet.sh',
+    'https://1xbet.com'
 ];
 
-const EVENTSSTAT_DOMAINS = [
+const STAT_MIRRORS = [
     'https://eventsstat.com',
-    'https://1xbet.eventsstat.com'
+    'https://1xstavka.ru' // EventStat engine is often mirrored here
 ];
 
-async function tryFetch(urls, options = {}) {
-    let lastError;
-    for (const url of urls) {
+/**
+ * Attempts to fetch from multiple mirrors until one succeeds.
+ */
+export async function fetchWithRotation(path, type = '1xbet', options = {}) {
+    const mirrors = type === '1xbet' ? XBET_MIRRORS : STAT_MIRRORS;
+    const errors = [];
+
+    for (const mirror of mirrors) {
         try {
-            console.log(`[ROBUST] Trying: ${url}`);
-            const response = await gotScraping.get(url, {
+            const url = `${mirror}${path}`;
+            console.log(`[RobustSearch] Trying mirror: ${url}`);
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout per mirror
+
+            const response = await fetch(url, {
                 ...options,
-                timeout: { request: 5000 }, // 5s timeout per try
-                retry: { limit: 0 } // Handle retries manually via domain rotation
+                signal: controller.signal,
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Referer': `${mirror}/en/`,
+                    ...options.headers
+                }
             });
-            if (response.statusCode === 200) {
-                console.log(`[ROBUST] Success with: ${url}`);
-                return response.body;
+
+            clearTimeout(timeoutId);
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log(`[RobustSearch] Success with mirror: ${mirror}`);
+                return data;
             }
-        } catch (error) {
-            console.warn(`[ROBUST] Failed: ${url} - ${error.message}`);
-            lastError = error;
+
+            errors.push(`${mirror}: HTTP ${response.status}`);
+        } catch (err) {
+            console.error(`[RobustSearch] Failed mirror ${mirror}:`, err.message);
+            errors.push(`${mirror}: ${err.message}`);
         }
     }
-    throw lastError || new Error('All domains failed');
+
+    throw new Error(`All mirrors failed: ${errors.join(', ')}`);
 }
-
-export const searchEntitiesRobust = async (query, sportId = 1) => {
-    const urls = EVENTSSTAT_DOMAINS.map(domain =>
-        `${domain}/fr/services-api/core-api/v1/search?search=${encodeURIComponent(query)}&sportId=${sportId}&lng=fr&ref=1&fcountry=91&gr=285`
-    );
-
-    return tryFetch(urls, {
-        responseType: 'json',
-        headers: {
-            'Referer': 'https://eventsstat.com/fr/statistic/',
-            'Origin': 'https://eventsstat.com'
-        }
-    });
-};
-
-export const searchEventsRobust = async (query) => {
-    const urls = X1BET_DOMAINS.map(domain =>
-        `${domain}/service-api/LineFeed/Web_SearchZip?text=${encodeURIComponent(query)}&limit=20&lng=fr&country=158&mode=4`
-    );
-
-    return tryFetch(urls, { responseType: 'json' });
-};
-
-export default {
-    searchEntitiesRobust,
-    searchEventsRobust
-};

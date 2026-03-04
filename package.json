@@ -1,18 +1,17 @@
 {
-  "name": "tennis-backend",
-  "version": "1.0.0",
-  "type": "module",
-  "description": "Tennis backend proxying 1xbet API on Vercel",
-  "main": "api/matches/index.js",
-  "scripts": {
-    "start": "node api/matches/index.js"
-  },
-  "dependencies": {
-    "axios": "^1.6.0",
-    "cheerio": "^1.2.0",
-    "cors": "^2.8.5",
-    "got-scraping": "^4.2.0",
-    "node-cache": "^5.1.2",
-    "puppeteer": "^24.37.5"
-  }
+    "name": "tennis-backend",
+    "version": "1.0.0",
+    "type": "module",
+    "description": "Tennis backend proxying 1xbet API on Vercel",
+    "main": "api/matches/index.js",
+    "scripts": {
+        "start": "node api/matches/index.js"
+    },
+    "dependencies": {
+        "axios": "^1.6.0",
+        "cors": "^2.8.5",
+        "got-scraping": "^4.2.0",
+        "node-cache": "^5.1.2",
+        "playwright": "^1.58.2"
+    }
 }
