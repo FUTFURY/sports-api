@@ -122,7 +122,8 @@ export const fetchTournaments = async () => {
                 tournamentsMap.set(match.tournamentId, {
                     id: match.tournamentId,
                     name: match.tournamentName,
-                    isTop: false // We can't easily determine this when deriving
+                    isTop: false, // We can't easily determine this when deriving
+                    eventsstatId: match.eventsstatTournamentId
                 });
             }
         });
@@ -296,22 +297,38 @@ export const fetchPlayerDetails = async (playerId) => {
 };
 
 export const fetchTournamentDetails = async (tournamentId) => {
-    const cacheKey = `tournament_details_${tournamentId}`;
+    let hexId = tournamentId;
+
+    // If tournamentId is numeric (from /api/tournament/:id), resolve it to the EventsStat season hex ID
+    if (/^\d+$/.test(tournamentId)) {
+        const tournaments = await fetchTournaments();
+        const found = tournaments.find(t => String(t.id) === String(tournamentId));
+        if (found && found.eventsstatId) {
+            hexId = found.eventsstatId; // This is the STI (season ID), which is what TournSeasonInfo expects
+        } else {
+            console.log(`Could not resolve numeric tournament ID ${tournamentId} to season hex ID – tournament may have no current matches.`);
+            return null;
+        }
+    }
+
+    const cacheKey = `tournament_details_${hexId}`;
     const cached = cache.get(cacheKey);
     if (cached) return cached;
 
     try {
-        const url = `https://eventsstat.com/en/services-api/SiteService/TournSeasonInfo?tournamentId=${tournamentId}&sId=4&ln=en&partner=0&geo=1`;
+        // hexId is the STI (season-specific ID from match data). TournSeasonInfo accepts it directly.
+        const url = `https://eventsstat.com/en/services-api/SiteService/TournSeasonInfo?tournamentId=${hexId}&sId=4&ln=en&partner=1&geo=1`;
         const data = await scrapingGet(url);
 
         if (!data || !data.T) {
+            console.error(`TournSeasonInfo returned no T for ID ${hexId}`);
             return null;
         }
 
-        cache.set(cacheKey, data, 3600); // Cache for 1 hour
-        return data; // Returning raw JSON structure for now as requested
+        cache.set(cacheKey, data, 3600);
+        return data;
     } catch (error) {
-        console.error(`Error fetching tournament details for ${tournamentId}:`, error.message);
+        console.error(`Error fetching tournament details for ${hexId}:`, error.message);
         return null;
     }
 };

@@ -25,3 +25,5 @@ headers_results.json
 dist/
 build/
 .vscode/
+.vercel
+.env*.local

@@ -27,8 +27,12 @@ export const mapMatch = (matchData) => {
         winProbability: matchData.WP, // e.g. { P1: 0.22, P2: 0.78 }
         isLive: !!matchData.SC, // If score structure exists, it's often live or finished
         stats: matchData.SG ? mapStats(matchData.SG) : null,
-        odds: mapOdds(matchData.E),
-        marketCount: matchData.EC || 0 // Total number of betting markets available (for your sorting algo)
+        odds: matchData.E ? mapOdds(matchData.E) : null,
+        marketCount: matchData.EC || 0, // Total number of betting markets available (for your sorting algo)
+
+        // EventsStat Hex IDs for detailed metrics
+        eventsstatMatchId: matchData.SGI,
+        eventsstatTournamentId: matchData.STI
     };
 };
 
@@ -74,7 +78,8 @@ export const mapTournament = (champ) => {
         id: champ.id || champ.LI,
         name: champ.name || champ.L,
         country: champ.country || champ.CN,
-        isTop: champ.isTop || champ.T === 1 // Often implies Top tournament
+        isTop: champ.isTop || champ.T === 1, // Often implies Top tournament
+        eventsstatId: champ.eventsstatId || champ.STI
     };
 };
 
