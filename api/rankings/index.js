@@ -1,5 +1,6 @@
 import { getATPTop100, getWTATop100 } from '../../services/1xbetService.js';
 import { withCors } from '../../utils/cors.js';
+import { VERSION } from '../../utils/version.js';
 
 const handler = async (req, res) => {
     try {
@@ -17,12 +18,13 @@ const handler = async (req, res) => {
 
         res.status(200).json({
             success: true,
+            version: VERSION,
             data: rankings,
             count: rankings.length
         });
     } catch (error) {
         console.error(`API Error /rankings:`, error);
-        res.status(500).json({ success: false, message: 'Internal Server Error' });
+        res.status(500).json({ success: false, version: VERSION, message: 'Internal Server Error' });
     }
 };
 

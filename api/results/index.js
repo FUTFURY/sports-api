@@ -1,5 +1,6 @@
 import { fetchResults } from '../../services/1xbetService.js';
 import { withCors } from '../../utils/cors.js';
+import { VERSION } from '../../utils/version.js';
 
 /**
  * GET /api/results?date=YYYY-MM-DD
@@ -58,13 +59,14 @@ const handler = async (req, res) => {
 
         res.status(200).json({
             success: true,
+            version: VERSION,
             date,
             count: matches.length,
             tournaments
         });
     } catch (error) {
         console.error('API Error /results:', error);
-        res.status(500).json({ success: false, message: 'Internal Server Error' });
+        res.status(500).json({ success: false, version: VERSION, message: 'Internal Server Error' });
     }
 };
 

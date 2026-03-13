@@ -1,5 +1,6 @@
 import { fetchLiveMatches, fetchUpcomingMatches, fetchTournamentBracket } from '../../../services/1xbetService.js';
 import { withCors } from '../../../utils/cors.js';
+import { VERSION } from '../../../utils/version.js';
 
 /**
  * GET /api/tournament/:id
@@ -20,7 +21,11 @@ const handler = async (req, res) => {
     try {
         const bracket = await fetchTournamentBracket(id);
         if (bracket && bracket.T?.Stages && bracket.T.Stages.length > 0) {
-            return res.status(200).json(bracket);
+            return res.status(200).json({
+                success: true,
+                version: VERSION,
+                data: bracket
+            });
         }
     } catch (e) {
         console.warn(`Direct scraping for ID ${id} failed:`, e.message);
@@ -50,7 +55,11 @@ const handler = async (req, res) => {
             try {
                 const bracket = await fetchTournamentBracket(hexId);
                 if (bracket && bracket.T?.Stages && bracket.T.Stages.length > 0) {
-                    return res.status(200).json(bracket);
+                    return res.status(200).json({
+                        success: true,
+                        version: VERSION,
+                        data: bracket
+                    });
                 }
             } catch (fallbackErr) {
                 console.warn(`Fallback bracket fetching failed for hexId ${hexId}:`, fallbackErr.message);
@@ -59,7 +68,11 @@ const handler = async (req, res) => {
 
         // C: LAST FALLBACK - Manual grouping of currently active matches
         if (targetMatches.length === 0) {
-            return res.status(200).json({ T: { N: null, Stages: [] } });
+            return res.status(200).json({
+                success: true,
+                version: VERSION,
+                data: { T: { N: null, Stages: [] } }
+            });
         }
 
         const tournamentName = targetMatches[0]?.tournamentName ?? null;
@@ -96,10 +109,18 @@ const handler = async (req, res) => {
             return ai - bi;
         });
 
-        return res.status(200).json({ T: { N: tournamentName, Stages: stages } });
+        return res.status(200).json({
+            success: true,
+            version: VERSION,
+            data: { T: { N: tournamentName, Stages: stages } }
+        });
 
     } catch (error) {
-        return res.status(200).json({ T: { N: "Matches", Stages: [] } });
+        return res.status(200).json({
+            success: false,
+            version: VERSION,
+            data: { T: { N: "Matches", Stages: [] } }
+        });
     }
 };
 

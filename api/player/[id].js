@@ -1,6 +1,7 @@
 import { gotScraping } from 'got-scraping';
 import { fetchPlayerDetails, getATPTop100, getWTATop100, fetchLiveMatches, fetchUpcomingMatches, fetchHeadToHead } from '../../../services/1xbetService.js';
 import { withCors } from '../../../utils/cors.js';
+import { VERSION } from '../../../utils/version.js';
 
 const handler = async (req, res) => {
     try {
@@ -126,8 +127,12 @@ const handler = async (req, res) => {
         }
 
         res.status(200).json({
-            ...finalDetails,
-            form: form || finalDetails.form
+            success: true,
+            version: VERSION,
+            data: {
+                ...finalDetails,
+                form: form || finalDetails.form
+            }
         });
 
     } catch (error) {
@@ -135,10 +140,14 @@ const handler = async (req, res) => {
 
         // Return 200 with minimal empty profile to avoid iOS -1011 error
         res.status(200).json({
-            id: req.query.id,
-            name: req.query.name || "Unknown Player",
-            form: [],
-            earnings: []
+            success: false,
+            version: VERSION,
+            data: {
+                id: req.query.id,
+                name: req.query.name || "Unknown Player",
+                form: [],
+                earnings: []
+            }
         });
     }
 };

@@ -99,21 +99,27 @@ export const mapStats = (matchData) => {
         }
     }
 
-    // Deep fallback search if the simple paths above failed
-    var scst = (matchData.SC && matchData.SC.ST) || matchData.ST;
-    if (Array.isArray(scst)) {
-        for (var j = 0; j < scst.length; j++) {
-            var items = scst[j].Value || scst[j].V;
-            if (Array.isArray(items) && items.length > 0) {
-                return items.map(function (stat) {
-                    return {
-                        name: stat.N || stat.NA || stat.ID || "Stat",
-                        p1: String((stat.S1 !== undefined && stat.S1 !== null) ? stat.S1 : ((stat.P1 !== undefined && stat.P1 !== null) ? stat.P1 : '-')),
-                        p2: String((stat.S2 !== undefined && stat.S2 !== null) ? stat.S2 : ((stat.P2 !== undefined && stat.P2 !== null) ? stat.P2 : '-'))
-                    };
-                });
-            }
-        }
+    // Fallback for SiteService/Game endpoint format (P array)
+    if (Array.isArray(matchData.P)) {
+        const T_MAP = {
+            40: "Aces",
+            41: "Double faults",
+            183: "1st Serve Percentage",
+            184: "2nd Serve Percentage",
+            185: "Set Points",
+            186: "Match Points",
+            187: "1st Serve Points Won",
+            188: "2nd Serve Points Won",
+            189: "Break Points Won",
+            190: "Break Points Played",
+            191: "Total Points Won"
+        };
+
+        return matchData.P.map(stat => ({
+            name: T_MAP[stat.T] || `Stat_${stat.T}`,
+            p1: String(stat.H ?? '-'),
+            p2: String(stat.A ?? '-')
+        })).filter(s => s.name);
     }
 
     return null;
