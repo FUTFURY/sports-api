@@ -527,7 +527,7 @@ export const searchGlobal = async (term, lang = 'fr', tz = '1') => {
     // We try multiple endpoint variations to maximize data capture (the "Open Data" request)
     const searchEndpoints = [
         `/service-api/LineFeed/Web_SearchZip?text=${termEncoded}&limit=30&lng=${lang}&mode=4&country=158&gr=1208`,
-        `/services-api/SiteService/Search?search=${termEncoded}&ln=${lang}&partner=1&geo=158&gr=1208`
+        `/service-api/LineFeed/GetChampsZip?text=${termEncoded}&lng=${lang}&country=158&partner=1`
     ];
 
     const mirrors = ['https://eventsstat.com', 'https://1xstavka.ru'];
@@ -554,7 +554,18 @@ export const searchGlobal = async (term, lang = 'fr', tz = '1') => {
                                 sportName: v.SN
                             });
                         }
+                        // Extract Teams from matches
+                        if (v.O1I && v.O1) {
+                            resultsPerMirror.push({ id: String(v.O1I), name: v.O1, type: 6, sportId: v.SI, image: v.O1IMG?.[0] });
+                        }
+                        if (v.O2I && v.O2) {
+                            resultsPerMirror.push({ id: String(v.O2I), name: v.O2, type: 6, sportId: v.SI, image: v.O2IMG?.[0] });
+                        }
                     });
+                }
+                // Handle GetChampsZip format
+                else if (data && data.Value && !Array.isArray(data.Value)) {
+                    // Logic for single object response with champs
                 }
                 else if (data && data.data && Array.isArray(data.data)) {
                     data.data.forEach(item => {
