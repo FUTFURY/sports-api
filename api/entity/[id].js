@@ -8,13 +8,16 @@ const EVENTSSTAT_MIRRORS = [
     'https://1xstavka.ru'
 ];
 
-async function fetchEntityStat(path) {
+async function fetchEntityStat(path, lang = 'en') {
     const partners = ['1', '368'];
     for (const mirror of EVENTSSTAT_MIRRORS) {
         for (const p of partners) {
             try {
-                // Adjust partner in path
-                const finalPath = path.replace(/partner=[^&]+/, `partner=${p}`);
+                // Force language in path if necessary (SiteService endpoints often use ln=)
+                let finalPath = path.replace(/partner=[^&]+/, `partner=${p}`);
+                if (lang) {
+                    finalPath = finalPath.replace(/ln=[^&]+/, `ln=${lang}`).replace(/lng=[^&]+/, `lng=${lang}`);
+                }
                 const url = `${mirror}${finalPath}`;
 
                 const res = await gotScraping.get(url, {
@@ -40,20 +43,22 @@ async function fetchEntityStat(path) {
 }
 
 const handler = async (req, res) => {
-    const { id, type } = req.query;
+    const { id, type, lang, lng, tz } = req.query;
 
     if (!id) {
         return res.status(400).json({ error: 'Entity ID required' });
     }
 
     const entityType = type || 'team';
+    const finalLang = lang || lng || 'fr'; // Défaut sur Français
+    const finalTz = tz || '1';
 
     try {
         let result = null;
 
         if (entityType === 'team') {
-            const path = `/en/services-api/SiteService/TeamDetailed?teamId=${id}&ln=en&partner=1&geo=158`;
-            const raw = await fetchEntityStat(path);
+            const path = `/en/services-api/SiteService/TeamDetailed?teamId=${id}&ln=${finalLang}&partner=1&geo=158`;
+            const raw = await fetchEntityStat(path, finalLang);
 
             if (raw) {
                 const team = raw.T || {};
@@ -126,8 +131,8 @@ const handler = async (req, res) => {
                 };
             }
         } else if (entityType === 'athlete' || entityType === 'player') {
-            const path = `/en/services-api/SiteService/PlayerDetailed?playerId=${id}&ln=en&partner=1&geo=158`;
-            const raw = await fetchEntityStat(path);
+            const path = `/en/services-api/SiteService/PlayerDetailed?playerId=${id}&ln=${finalLang}&partner=1&geo=158`;
+            const raw = await fetchEntityStat(path, finalLang);
 
             if (raw) {
                 // For non-tennis athletes, info is often in raw.P, for tennis it might be root
@@ -182,10 +187,10 @@ const handler = async (req, res) => {
             }
         } else if (entityType === 'league') {
             const sportIdParam = req.query.sportId || '1'; // Default to football si non spécifié
-            const path = `/en/services-api/SiteService/TournSeasonInfo?tournamentId=${id}&sId=${sportIdParam}&ln=en&partner=1&geo=158`;
+            const path = `/en/services-api/SiteService/TournSeasonInfo?tournamentId=${id}&sId=${sportIdParam}&ln=${finalLang}&partner=1&geo=158`;
 
-            console.log(`[entity] Fetching league detail for ID ${id} with sportId ${sportIdParam}`);
-            const raw = await fetchEntityStat(path);
+            console.log(`[entity] Fetching league detail for ID ${id} with sportId ${sportIdParam} (lang: ${finalLang})`);
+            const raw = await fetchEntityStat(path, finalLang);
 
             if (raw) {
                 console.log(`[entity] League data received for ${id}`);

@@ -1,1 +1,1 @@
-export const VERSION = "1.0.4-robust-search";
+export const VERSION = "1.0.5-i18n-cleanup";

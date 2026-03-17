@@ -5,20 +5,22 @@ import { mapStats } from '../../../mappers/1xbet.js';
 
 const handler = async (req, res) => {
     try {
-        const { id, isLive, sportId } = req.query;
+        const { id, isLive, sportId, lang, lng, tz } = req.query;
 
         if (!id) {
             return res.status(400).json({ success: false, message: 'Match ID is required in the query or path.' });
         }
 
+        const finalLang = lang || lng || 'fr';
+        const finalTz = tz || '1';
         const liveFlag = isLive === 'true' || isLive === '1';
         const sid = parseInt(sportId) || 4; // Default to tennis if not provided
 
         const [matchDetails, h2h, detailedInfo, sportsList] = await Promise.all([
-            fetchMatchDetails(id, liveFlag, sid),
+            fetchMatchDetails(id, liveFlag, sid, finalLang, finalTz),
             fetchHeadToHead(id, sid),
             fetchMatchDetailed(id, sid),
-            fetchSports(req.query.lng || 'en')
+            fetchSports(finalLang)
         ]);
 
         const sportInfo = Array.isArray(sportsList) ? sportsList.find(s => s.sportId === sid) : null;

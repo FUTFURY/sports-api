@@ -16,7 +16,9 @@ const DEFAULT_HEADERS = {
     'X-Requested-With': 'XMLHttpRequest',
     'Accept': 'application/json, text/plain, */*',
     'Accept-Encoding': 'gzip, deflate, br',
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    'x-svc-source': '___BETTING_APP___',
+    'x-app-n': '___BETTING_APP___'
 };
 
 // Helper to fetch dynamic sports list - USES DIRECT GOT TO AVOID RECURSION
@@ -99,13 +101,13 @@ async function scrapingGet(url, customHeaders = {}, sportId = DEFAULT_SPORT_ID) 
 
 // -- 1XBET MAIN API FETCHERS --
 
-export const fetchLiveMatches = async (sportId = DEFAULT_SPORT_ID) => {
-    const cacheKey = `live_matches_${sportId}`;
+export const fetchLiveMatches = async (sportId = DEFAULT_SPORT_ID, lang = 'en', tz = '3') => {
+    const cacheKey = `live_matches_${sportId}_${lang}_${tz}`;
     const cached = cache.get(cacheKey);
     if (cached) return cached;
 
     try {
-        const url = `${MAIN_BASE_URL}/service-api/LiveFeed/Get1x2_VZip?sports=${sportId}&count=40&lng=en&mode=4&country=158&getEmpty=true&virtualSports=true&noFilterBlockEvent=true`;
+        const url = `${MAIN_BASE_URL}/service-api/LiveFeed/Get1x2_VZip?sports=${sportId}&count=40&lng=${lang}&mode=4&country=158&getEmpty=true&virtualSports=true&noFilterBlockEvent=true&tf=${tz}`;
         const data = await scrapingGet(url, {}, sportId);
         const matches = data?.Value || [];
         const normalized = matches.map(mapMatch).filter(Boolean);
@@ -117,13 +119,13 @@ export const fetchLiveMatches = async (sportId = DEFAULT_SPORT_ID) => {
     }
 };
 
-export const fetchUpcomingMatches = async (sportId = DEFAULT_SPORT_ID) => {
-    const cacheKey = `upcoming_matches_${sportId}`;
+export const fetchUpcomingMatches = async (sportId = DEFAULT_SPORT_ID, lang = 'en', tz = '3') => {
+    const cacheKey = `upcoming_matches_${sportId}_${lang}_${tz}`;
     const cached = cache.get(cacheKey);
     if (cached) return cached;
 
     try {
-        const url = `${MAIN_BASE_URL}/service-api/LineFeed/Get1x2_VZip?sports=${sportId}&count=40&lng=en&mode=4&country=158&getEmpty=true&virtualSports=true`;
+        const url = `${MAIN_BASE_URL}/service-api/LineFeed/Get1x2_VZip?sports=${sportId}&count=40&lng=${lang}&mode=4&country=158&getEmpty=true&virtualSports=true&tf=${tz}`;
         const data = await scrapingGet(url, {}, sportId);
         const matches = data?.Value || [];
         const normalized = matches.map(mapMatch).filter(Boolean);
@@ -135,13 +137,13 @@ export const fetchUpcomingMatches = async (sportId = DEFAULT_SPORT_ID) => {
     }
 };
 
-export const fetchResults = async (date, sportId = DEFAULT_SPORT_ID) => {
-    const cacheKey = `results_${date}_${sportId}`;
+export const fetchResults = async (date, sportId = DEFAULT_SPORT_ID, lang = 'en', tz = '3') => {
+    const cacheKey = `results_${date}_${sportId}_${lang}_${tz}`;
     const cached = cache.get(cacheKey);
     if (cached) return cached;
 
     try {
-        const url = `${MAIN_BASE_URL}/service-api/LineFeed/GetResultsZip?sports=${sportId}&lng=en&day=${date}&country=158`;
+        const url = `${MAIN_BASE_URL}/service-api/LineFeed/GetResultsZip?sports=${sportId}&lng=${lang}&day=${date}&country=158&tf=${tz}`;
         const data = await scrapingGet(url, {}, sportId);
 
         let allMatches = [];
@@ -168,15 +170,15 @@ export const fetchResults = async (date, sportId = DEFAULT_SPORT_ID) => {
     }
 };
 
-export const fetchTournaments = async (sportId = DEFAULT_SPORT_ID) => {
-    const cacheKey = `active_tournaments_${sportId}`;
+export const fetchTournaments = async (sportId = DEFAULT_SPORT_ID, lang = 'en', tz = '3') => {
+    const cacheKey = `active_tournaments_${sportId}_${lang}_${tz}`;
     const cached = cache.get(cacheKey);
     if (cached) return cached;
 
     try {
         const [live, upcoming] = await Promise.all([
-            fetchLiveMatches(sportId),
-            fetchUpcomingMatches(sportId)
+            fetchLiveMatches(sportId, lang, tz),
+            fetchUpcomingMatches(sportId, lang, tz)
         ]);
 
         const allMatches = [...live, ...upcoming];
@@ -202,14 +204,14 @@ export const fetchTournaments = async (sportId = DEFAULT_SPORT_ID) => {
     }
 };
 
-export const fetchMatchDetails = async (id, isLive = false, sportId = DEFAULT_SPORT_ID) => {
-    const cacheKey = `match_details_${id}`;
+export const fetchMatchDetails = async (id, isLive = false, sportId = DEFAULT_SPORT_ID, lang = 'en', tz = '3') => {
+    const cacheKey = `match_details_${id}_${lang}_${tz}`;
     const cached = cache.get(cacheKey);
     if (cached) return cached;
 
     try {
         const endpoint = isLive ? '/service-api/LiveFeed/GetGameZip' : '/service-api/LineFeed/GetGameZip';
-        const url = `${MAIN_BASE_URL}${endpoint}?id=${id}&lng=en&mode=4&country=158`;
+        const url = `${MAIN_BASE_URL}${endpoint}?id=${id}&lng=${lang}&mode=4&country=158&tf=${tz}`;
         const data = await scrapingGet(url, {}, sportId);
         const game = data?.Value || data;
         if (!game) return null;
@@ -517,57 +519,77 @@ export const fetchTournamentBracket = async (hexId) => {
     }
 };
 
-export const searchGlobal = async (term, sportId = 'all') => {
+export const searchGlobal = async (term, lang = 'fr', tz = '1') => {
     let entities = [];
     const termEncoded = encodeURIComponent(term);
 
     // 1. Search for Entities (Teams, Players, Leagues) 
     // We try multiple endpoint variations to maximize data capture (the "Open Data" request)
     const searchEndpoints = [
-        `/en/services-api/core-api/v1/search?search=${termEncoded}&lng=en&ref=1`,
-        `/services-api/SiteService/Search?search=${termEncoded}&ln=en&partner=1&geo=158`
+        `/service-api/LineFeed/Web_SearchZip?text=${termEncoded}&limit=30&lng=${lang}&mode=4&country=158&gr=1208`,
+        `/services-api/SiteService/Search?search=${termEncoded}&ln=${lang}&partner=1&geo=158&gr=1208`
     ];
 
     const mirrors = ['https://eventsstat.com', 'https://1xstavka.ru'];
 
     for (const mirror of mirrors) {
+        const resultsPerMirror = [];
         for (const path of searchEndpoints) {
             try {
                 const data = await scrapingGet(`${mirror}${path}`, {
-                    'Referer': `${mirror}/en/`
+                    'Referer': `${mirror}/${lang}/`
                 });
 
-                // Handle core-api format (data.data)
-                if (data && data.data && Array.isArray(data.data)) {
-                    const mapped = data.data.map(item => ({
-                        id: String(item.id),
-                        name: item.title || item.name,
-                        type: item.type, // 6, 7, 10
-                        image: item.image,
-                        sportId: item.sportId,
-                        sportName: item.sportName
-                    }));
-                    entities = [...entities, ...mapped];
+                // Handle core-api or Web_SearchZip results
+                if (data && data.Value && Array.isArray(data.Value)) {
+                    // Extract leagues and teams from Web_SearchZip
+                    data.Value.forEach(v => {
+                        // Extract League as a potential entity
+                        if (v.LI && v.L) {
+                            resultsPerMirror.push({
+                                id: String(v.LI),
+                                name: v.L,
+                                type: 10, // League
+                                sportId: v.SI,
+                                sportName: v.SN
+                            });
+                        }
+                    });
+                }
+                else if (data && data.data && Array.isArray(data.data)) {
+                    data.data.forEach(item => {
+                        resultsPerMirror.push({
+                            id: String(item.id),
+                            name: item.title || item.name,
+                            type: item.type,
+                            image: item.image,
+                            sportId: item.sportId,
+                            sportName: item.sportName
+                        });
+                    });
                 }
                 // Handle SiteService format (data.D)
                 else if (data && data.D && Array.isArray(data.D)) {
-                    const mapped = data.D.map(item => ({
-                        id: String(item.I),
-                        name: item.T,
-                        type: item.SI === 1 ? 6 : (item.P === 7 ? 7 : 10), // Heuristic
-                        image: item.M,
-                        sportId: item.SI,
-                        sportName: null
-                    }));
-                    entities = [...entities, ...mapped];
+                    data.D.forEach(item => {
+                        resultsPerMirror.push({
+                            id: String(item.I),
+                            name: item.T,
+                            type: item.SI === 1 ? 6 : (item.P === 7 ? 7 : 10),
+                            image: item.M,
+                            sportId: item.SI,
+                            sportName: null
+                        });
+                    });
                 }
-
-                if (entities.length > 5) break;
             } catch (e) {
-                console.error(`[searchGlobal] Entity mirror ${mirror} failed for ${path}:`, e.message);
+                console.error(`[searchGlobal] mirror ${mirror} fail for ${path}:`, e.message);
             }
         }
-        if (entities.length > 0) break;
+        if (resultsPerMirror.length > 0) {
+            entities = [...entities, ...resultsPerMirror];
+            // Si on a déjà assez de résultats d'un miroir fiable, on peut s'arrêter
+            if (entities.length > 10) break;
+        }
     }
 
     // De-duplicate entities by ID
@@ -585,7 +607,7 @@ export const searchGlobal = async (term, sportId = 'all') => {
 
     let events = [];
     try {
-        const pathLine = `/service-api/LineFeed/Web_SearchZip?text=${encodeURIComponent(term)}&limit=20&lng=en&country=158&mode=4`;
+        const pathLine = `/service-api/LineFeed/Web_SearchZip?text=${encodeURIComponent(term)}&limit=20&lng=${lang}&country=158&mode=4&tf=${tz}`;
         const dLine = await fetchWithRotation(pathLine, '1xbet').catch(() => ({ Value: [] }));
         if (dLine && dLine.Value) events = [...events, ...dLine.Value];
     } catch (e) {
@@ -593,7 +615,7 @@ export const searchGlobal = async (term, sportId = 'all') => {
     }
 
     try {
-        const pathLive = `/service-api/LiveFeed/Web_SearchZip?text=${encodeURIComponent(term)}&limit=10&lng=en&country=158&mode=4`;
+        const pathLive = `/service-api/LiveFeed/Web_SearchZip?text=${encodeURIComponent(term)}&limit=10&lng=${lang}&country=158&mode=4&tf=${tz}`;
         const dLive = await fetchWithRotation(pathLive, '1xbet').catch(() => ({ Value: [] }));
         if (dLive && dLive.Value) events = [...events, ...dLive.Value];
     } catch (e) {
@@ -602,7 +624,43 @@ export const searchGlobal = async (term, sportId = 'all') => {
 
     const results = [];
 
-    // Process search results
+    // Map pour stocker les noms "propres" (traduits) trouvés dynamiquement dans les events
+    const cleanNamesMap = new Map();
+
+    const normalizeName = (name) => {
+        if (!name) return name;
+        // Supprime les prefixes type "PAYS: " (ex: "ANGLIYa: League 1" -> "League 1")
+        // Fonctionne sur n'importe quelle langue car on cible la structure "TEXTE: "
+        const parts = name.includes(':') ? name.split(':') : [name];
+        let n = parts.length > 1 ? parts[1].trim() : parts[0].trim();
+
+        // Si le nom contient encore des caractères russes, on ne peut rien faire sans API, 
+        // mais au moins le préfixe casse-pieds est parti.
+        return n;
+    };
+
+    const uniqueEvents = Array.from(new Map(events.map(e => [e.I, e])).values());
+    uniqueEvents.forEach(e => {
+        // On profite des events pour mapper les vrais noms traduits des ligues et teams
+        if (e.LI && e.L) cleanNamesMap.set(String(e.LI), e.L);
+        if (e.O1I && e.O1) cleanNamesMap.set(String(e.O1I), e.O1);
+        if (e.O2I && e.O2) cleanNamesMap.set(String(e.O2I), e.O2);
+
+        results.push({
+            id: String(e.I),
+            name: `${e.O1} v ${e.O2}`,
+            subtitle: normalizeName(e.L),
+            type: 'event',
+            category: 'Events',
+            isLive: null,
+            image: (e.O1IMG && e.O1IMG.length > 0) ? `https://sa.1xbet.com/sfiles/logo_teams/${e.O1IMG[0]}` : null,
+            homeImage: (e.O1IMG && e.O1IMG.length > 0) ? `https://sa.1xbet.com/sfiles/logo_teams/${e.O1IMG[0]}` : null,
+            awayImage: (e.O2IMG && e.O2IMG.length > 0) ? `https://sa.1xbet.com/sfiles/logo_teams/${e.O2IMG[0]}` : null,
+            sportId: e.SI
+        });
+    });
+
+    // Process search results (Entities) en utilisant notre map de noms enrichis
     entities.forEach(item => {
         let cat = 'Unknown';
         let typeStr = 'unknown';
@@ -613,14 +671,15 @@ export const searchGlobal = async (term, sportId = 'all') => {
         else if (rawType === 10) { cat = 'Leagues'; typeStr = 'league'; }
 
         if (cat !== 'Unknown') {
+            // Enrichissement : si on a trouvé un meilleur nom (traduit) dans les events, on l'utilise
+            const enrichedName = cleanNamesMap.get(item.id);
+            const finalName = enrichedName || normalizeName(item.name);
+
             let finalImage = item.image;
             if (finalImage && !finalImage.startsWith('http')) {
-                // Pour les ligues, les IDs numériques (ex: 60230225.png) sont souvent des 404.
-                // On ne construit l'URL que si ce n'est pas un de ces placeholders.
                 const isNumericPlaceholder = typeStr === 'league' && /^\d+\.png$/.test(finalImage) && finalImage.length > 10;
-
                 if (isNumericPlaceholder) {
-                    finalImage = null; // L'iOS app affichera un placeholder par défaut
+                    finalImage = null;
                 } else {
                     const folder = (typeStr === 'league') ? 'logo_ligas' : 'logo_teams';
                     finalImage = `https://sa.1xbet.com/sfiles/${folder}/${finalImage}`;
@@ -629,7 +688,7 @@ export const searchGlobal = async (term, sportId = 'all') => {
 
             results.push({
                 id: item.id,
-                name: item.name || 'Unknown',
+                name: finalName || 'Unknown',
                 subtitle: item.sportName || null,
                 type: typeStr,
                 category: cat,
@@ -639,22 +698,6 @@ export const searchGlobal = async (term, sportId = 'all') => {
                 sportId: parseInt(item.sportId) || null
             });
         }
-    });
-
-    const uniqueEvents = Array.from(new Map(events.map(e => [e.I, e])).values());
-    uniqueEvents.forEach(e => {
-        results.push({
-            id: String(e.I),
-            name: `${e.O1} v ${e.O2}`,
-            subtitle: e.L,
-            type: 'event',
-            category: 'Events',
-            isLive: null,
-            image: (e.O1IMG && e.O1IMG.length > 0) ? `https://sa.1xbet.com/sfiles/logo_teams/${e.O1IMG[0]}` : null,
-            homeImage: (e.O1IMG && e.O1IMG.length > 0) ? `https://sa.1xbet.com/sfiles/logo_teams/${e.O1IMG[0]}` : null,
-            awayImage: (e.O2IMG && e.O2IMG.length > 0) ? `https://sa.1xbet.com/sfiles/logo_teams/${e.O2IMG[0]}` : null,
-            sportId: e.SI
-        });
     });
 
     // Fallback: Local match lookup across loaded matches (default to tennis for performance)

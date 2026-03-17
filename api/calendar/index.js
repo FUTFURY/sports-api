@@ -13,14 +13,18 @@ const handler = async (req, res) => {
         const requestedDate = new Date(date).setHours(0, 0, 0, 0);
         const today = new Date().setHours(0, 0, 0, 0);
 
+        const { lang, lng, tz, sportId } = req.query;
+        const finalLang = lang || lng || 'fr';
+        const finalTz = tz || '1';
+        const finalSportId = sportId || '1';
+
         let matches = [];
         if (requestedDate < today) {
             // Fetch historical results
-            const dateStr = date; // date is already YYYY-MM-DD
-            matches = await fetchResults(dateStr);
+            matches = await fetchResults(date, finalSportId, finalLang, finalTz);
         } else {
             // Fetch current/future line matches
-            const upcoming = await fetchUpcomingMatches();
+            const upcoming = await fetchUpcomingMatches(finalSportId, finalLang, finalTz);
             const nextDate = new Date(requestedDate).setDate(new Date(requestedDate).getDate() + 1);
             matches = upcoming.filter(match => {
                 if (!match.startTime) return false;

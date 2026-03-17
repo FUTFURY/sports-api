@@ -4,9 +4,14 @@ import { VERSION } from '../../utils/version.js';
 
 const handler = async (req, res) => {
     try {
+        const { lang, lng, tz, sportId } = req.query;
+        const finalLang = lang || lng || 'fr';
+        const finalTz = tz || '1';
+        const finalSportId = sportId || '1'; // Football par défaut ici
+
         const [live, upcoming] = await Promise.all([
-            fetchLiveMatches(),
-            fetchUpcomingMatches()
+            fetchLiveMatches(finalSportId, finalLang, finalTz),
+            fetchUpcomingMatches(finalSportId, finalLang, finalTz)
         ]);
 
         res.status(200).json({

@@ -4,7 +4,12 @@ import { VERSION } from '../../utils/version.js';
 
 const handler = async (req, res) => {
     try {
-        const tournaments = await fetchTournaments();
+        const { lang, lng, tz, sportId } = req.query;
+        const finalLang = lang || lng || 'fr';
+        const finalTz = tz || '1';
+        const finalSportId = sportId || '1';
+
+        const tournaments = await fetchTournaments(finalSportId, finalLang, finalTz);
 
         res.status(200).json({
             success: true,

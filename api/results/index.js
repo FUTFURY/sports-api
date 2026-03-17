@@ -37,7 +37,12 @@ const handler = async (req, res) => {
     }
 
     try {
-        const matches = await fetchResults(date);
+        const { lang, lng, tz, sportId } = req.query;
+        const finalLang = lang || lng || 'fr';
+        const finalTz = tz || '1';
+        const finalSportId = sportId || '1';
+
+        const matches = await fetchResults(date, finalSportId, finalLang, finalTz);
 
         // Group matches by tournament
         const grouped = new Map();

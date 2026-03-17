@@ -4,12 +4,16 @@ import { VERSION } from '../../utils/version.js';
 
 const handler = async (req, res) => {
     try {
-        const { q, type } = req.query;
+        const { q, lang, lng, tz } = req.query;
         if (!q || q.length < 2) {
             return res.status(200).json({ success: true, data: [] });
         }
 
-        let results = await searchGlobal(q);
+        // Supporte 'lang' ou 'lng', avec 'fr' par défaut pour éviter le Russe
+        const finalLang = lang || lng || 'fr';
+        const finalTz = tz || '1'; // GTM+1 par défaut (Paris)
+
+        let results = await searchGlobal(q, finalLang, finalTz);
 
         res.status(200).json({
             success: true,
