@@ -634,6 +634,7 @@ export const searchGlobal = async (term, lang = 'fr', tz = '1') => {
     }
 
     const results = [];
+    const IGNORED_SPORT_IDS = [202, 314, 2999]; // Politics, Crypto, Special bets, etc.
 
     // Map pour stocker les noms "propres" (traduits) trouvés dynamiquement dans les events
     const cleanNamesMap = new Map();
@@ -641,17 +642,16 @@ export const searchGlobal = async (term, lang = 'fr', tz = '1') => {
     const normalizeName = (name) => {
         if (!name) return name;
         // Supprime les prefixes type "PAYS: " (ex: "ANGLIYa: League 1" -> "League 1")
-        // Fonctionne sur n'importe quelle langue car on cible la structure "TEXTE: "
         const parts = name.includes(':') ? name.split(':') : [name];
         let n = parts.length > 1 ? parts[1].trim() : parts[0].trim();
-
-        // Si le nom contient encore des caractères russes, on ne peut rien faire sans API, 
-        // mais au moins le préfixe casse-pieds est parti.
         return n;
     };
 
     const uniqueEvents = Array.from(new Map(events.map(e => [e.I, e])).values());
     uniqueEvents.forEach(e => {
+        const sId = parseInt(e.SI);
+        if (IGNORED_SPORT_IDS.includes(sId)) return;
+
         // On profite des events pour mapper les vrais noms traduits des ligues et teams
         if (e.LI && e.L) cleanNamesMap.set(String(e.LI), e.L);
         if (e.O1I && e.O1) cleanNamesMap.set(String(e.O1I), e.O1);
@@ -667,17 +667,29 @@ export const searchGlobal = async (term, lang = 'fr', tz = '1') => {
             image: (e.O1IMG && e.O1IMG.length > 0) ? `https://sa.1xbet.com/sfiles/logo_teams/${e.O1IMG[0]}` : null,
             homeImage: (e.O1IMG && e.O1IMG.length > 0) ? `https://sa.1xbet.com/sfiles/logo_teams/${e.O1IMG[0]}` : null,
             awayImage: (e.O2IMG && e.O2IMG.length > 0) ? `https://sa.1xbet.com/sfiles/logo_teams/${e.O2IMG[0]}` : null,
-            sportId: e.SI
+            sportId: sId
         });
     });
 
     // Process search results (Entities) en utilisant notre map de noms enrichis
     entities.forEach(item => {
+        const sId = parseInt(item.sportId);
+        if (IGNORED_SPORT_IDS.includes(sId)) return;
+
         let cat = 'Unknown';
         let typeStr = 'unknown';
 
         const rawType = parseInt(item.type);
-        if (rawType === 6) { cat = 'Teams'; typeStr = 'team'; }
+        if (rawType === 6) { 
+            // Pour le Tennis, les "teams" sont généralement des athlètes
+            if (sId === 4) {
+                cat = 'Athletes'; 
+                typeStr = 'player';
+            } else {
+                cat = 'Teams'; 
+                typeStr = 'team'; 
+            }
+        }
         else if (rawType === 7) { cat = 'Athletes'; typeStr = 'player'; }
         else if (rawType === 10) { cat = 'Leagues'; typeStr = 'league'; }
 
@@ -685,6 +697,11 @@ export const searchGlobal = async (term, lang = 'fr', tz = '1') => {
             // Enrichissement : si on a trouvé un meilleur nom (traduit) dans les events, on l'utilise
             const enrichedName = cleanNamesMap.get(item.id);
             const finalName = enrichedName || normalizeName(item.name);
+
+            // Filtre de sécurité supplémentaire pour les paris spéciaux restants dans le nom
+            if (finalName.includes('. Paris spéciaux') || 
+                finalName.includes('. Apuestas especiales') || 
+                finalName.includes('. Special bets')) return;
 
             let finalImage = item.image;
             if (finalImage && !finalImage.startsWith('http')) {
@@ -706,7 +723,7 @@ export const searchGlobal = async (term, lang = 'fr', tz = '1') => {
                 isLive: false,
                 rank: null,
                 image: finalImage,
-                sportId: parseInt(item.sportId) || null
+                sportId: sId || null
             });
         }
     });
