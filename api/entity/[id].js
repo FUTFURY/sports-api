@@ -1,6 +1,7 @@
 import { withCors } from '../../utils/cors.js';
 import { VERSION } from '../../utils/version.js';
 import { fetchWithRotation } from '../../services/robustSearchService.js';
+import { fetchTeamContext } from '../../services/1xbetService.js';
 import { gotScraping } from 'got-scraping';
 
 const EVENTSSTAT_MIRRORS = [
@@ -129,6 +130,29 @@ const handler = async (req, res) => {
                     upcomingMatches,
                     roster
                 };
+            }
+
+            // FALLBACK: If TeamDetailed failed or returned nothing, 
+            // try to find context from active matches (leagues, name, image)
+            if (!result || result.name === 'Unknown') {
+                const sportIdParam = req.query.sportId || '1';
+                const context = await fetchTeamContext(id, sportIdParam, finalLang);
+                
+                if (context) {
+                    result = {
+                        ...result,
+                        id: id,
+                        name: context.name,
+                        image: context.image,
+                        type: 'team',
+                        sportId: context.sportId,
+                        tournaments: context.leagues.map(l => ({
+                            id: l.id,
+                            name: l.name,
+                            season: null
+                        }))
+                    };
+                }
             }
         } else if (entityType === 'athlete' || entityType === 'player') {
             const path = `/en/services-api/SiteService/PlayerDetailed?playerId=${id}&ln=${finalLang}&partner=1&geo=158`;

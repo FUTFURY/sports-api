@@ -107,8 +107,8 @@ export const fetchLiveMatches = async (sportId = DEFAULT_SPORT_ID, lang = 'en', 
     if (cached) return cached;
 
     try {
-        const url = `${MAIN_BASE_URL}/service-api/LiveFeed/Get1x2_VZip?sports=${sportId}&count=40&lng=${lang}&mode=4&country=158&getEmpty=true&virtualSports=true&noFilterBlockEvent=true&tf=${tz}`;
-        const data = await scrapingGet(url, {}, sportId);
+        const path = `/service-api/LiveFeed/Get1x2_VZip?sports=${sportId}&count=40&lng=${lang}&mode=4&country=158&getEmpty=true&virtualSports=true&noFilterBlockEvent=true&tf=${tz}`;
+        const data = await fetchWithRotation(path, '1xbet');
         const matches = data?.Value || [];
         const normalized = matches.map(mapMatch).filter(Boolean);
         cache.set(cacheKey, normalized, 60);
@@ -125,8 +125,8 @@ export const fetchUpcomingMatches = async (sportId = DEFAULT_SPORT_ID, lang = 'e
     if (cached) return cached;
 
     try {
-        const url = `${MAIN_BASE_URL}/service-api/LineFeed/Get1x2_VZip?sports=${sportId}&count=40&lng=${lang}&mode=4&country=158&getEmpty=true&virtualSports=true&tf=${tz}`;
-        const data = await scrapingGet(url, {}, sportId);
+        const path = `/service-api/LineFeed/Get1x2_VZip?sports=${sportId}&count=40&lng=${lang}&mode=4&country=158&getEmpty=true&virtualSports=true&tf=${tz}`;
+        const data = await fetchWithRotation(path, '1xbet');
         const matches = data?.Value || [];
         const normalized = matches.map(mapMatch).filter(Boolean);
         cache.set(cacheKey, normalized, 300);
@@ -638,6 +638,8 @@ export const searchGlobal = async (term, lang = 'fr', tz = '1') => {
 
     // Map pour stocker les noms "propres" (traduits) trouvés dynamiquement dans les events
     const cleanNamesMap = new Map();
+    // Map pour stocker les ligues associées à chaque équipe
+    const teamLeaguesMap = new Map();
 
     const normalizeName = (name) => {
         if (!name) return name;
@@ -654,8 +656,20 @@ export const searchGlobal = async (term, lang = 'fr', tz = '1') => {
 
         // On profite des events pour mapper les vrais noms traduits des ligues et teams
         if (e.LI && e.L) cleanNamesMap.set(String(e.LI), e.L);
-        if (e.O1I && e.O1) cleanNamesMap.set(String(e.O1I), e.O1);
-        if (e.O2I && e.O2) cleanNamesMap.set(String(e.O2I), e.O2);
+        if (e.O1I && e.O1) {
+            cleanNamesMap.set(String(e.O1I), e.O1);
+            if (e.LI && e.L) {
+                if (!teamLeaguesMap.has(String(e.O1I))) teamLeaguesMap.set(String(e.O1I), new Map());
+                teamLeaguesMap.get(String(e.O1I)).set(String(e.LI), e.L);
+            }
+        }
+        if (e.O2I && e.O2) {
+            cleanNamesMap.set(String(e.O2I), e.O2);
+            if (e.LI && e.L) {
+                if (!teamLeaguesMap.has(String(e.O2I))) teamLeaguesMap.set(String(e.O2I), new Map());
+                teamLeaguesMap.get(String(e.O2I)).set(String(e.LI), e.L);
+            }
+        }
 
         results.push({
             id: String(e.I),
@@ -663,7 +677,12 @@ export const searchGlobal = async (term, lang = 'fr', tz = '1') => {
             subtitle: normalizeName(e.L),
             type: 'event',
             category: 'Events',
-            isLive: null,
+            isLive: e.live || false,
+            player1Id: e.O1I,
+            player2Id: e.O2I,
+            player1: e.O1,
+            player2: e.O2,
+            time: e.S,
             image: (e.O1IMG && e.O1IMG.length > 0) ? `https://sa.1xbet.com/sfiles/logo_teams/${e.O1IMG[0]}` : null,
             homeImage: (e.O1IMG && e.O1IMG.length > 0) ? `https://sa.1xbet.com/sfiles/logo_teams/${e.O1IMG[0]}` : null,
             awayImage: (e.O2IMG && e.O2IMG.length > 0) ? `https://sa.1xbet.com/sfiles/logo_teams/${e.O2IMG[0]}` : null,
@@ -680,14 +699,14 @@ export const searchGlobal = async (term, lang = 'fr', tz = '1') => {
         let typeStr = 'unknown';
 
         const rawType = parseInt(item.type);
-        if (rawType === 6) { 
+        if (rawType === 6) {
             // Pour le Tennis, les "teams" sont généralement des athlètes
             if (sId === 4) {
-                cat = 'Athletes'; 
+                cat = 'Athletes';
                 typeStr = 'player';
             } else {
-                cat = 'Teams'; 
-                typeStr = 'team'; 
+                cat = 'Teams';
+                typeStr = 'team';
             }
         }
         else if (rawType === 7) { cat = 'Athletes'; typeStr = 'player'; }
@@ -699,8 +718,8 @@ export const searchGlobal = async (term, lang = 'fr', tz = '1') => {
             const finalName = enrichedName || normalizeName(item.name);
 
             // Filtre de sécurité supplémentaire pour les paris spéciaux restants dans le nom
-            if (finalName.includes('. Paris spéciaux') || 
-                finalName.includes('. Apuestas especiales') || 
+            if (finalName.includes('. Paris spéciaux') ||
+                finalName.includes('. Apuestas especiales') ||
                 finalName.includes('. Special bets')) return;
 
             let finalImage = item.image;
@@ -714,6 +733,9 @@ export const searchGlobal = async (term, lang = 'fr', tz = '1') => {
                 }
             }
 
+            const leaguesSet = teamLeaguesMap.get(item.id);
+            const leagues = leaguesSet ? Array.from(leaguesSet.entries()).map(([id, name]) => ({ id, name })) : [];
+
             results.push({
                 id: item.id,
                 name: finalName || 'Unknown',
@@ -723,7 +745,8 @@ export const searchGlobal = async (term, lang = 'fr', tz = '1') => {
                 isLive: false,
                 rank: null,
                 image: finalImage,
-                sportId: sId || null
+                sportId: sId || null,
+                leagues: leagues // Added leagues for teams
             });
         }
     });
@@ -759,6 +782,196 @@ export const searchGlobal = async (term, lang = 'fr', tz = '1') => {
     return results;
 };
 
+export const fetchTeamContext = async (teamId, sportId = 1, lang = 'fr') => {
+    const cacheKey = `team_context_${teamId}_${sportId}_${lang}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return cached;
+
+    try {
+        console.log(`[fetchTeamContext] Looking for team ${teamId} in active matches (sport ${sportId})...`);
+        const [live, upcoming] = await Promise.all([
+            fetchLiveMatches(sportId, lang).catch(() => []),
+            fetchUpcomingMatches(sportId, lang).catch(() => [])
+        ]);
+
+        const allMatches = [...live, ...upcoming];
+        const teamIdNum = parseInt(teamId, 10);
+        
+        // Find matches where this team is playing
+        const targetMatches = allMatches.filter(m => m.player1Id === teamIdNum || m.player2Id === teamIdNum);
+        
+        if (targetMatches.length === 0) return null;
+
+        const first = targetMatches[0];
+        const isPlayer1 = first.player1Id === teamIdNum;
+        
+        const context = {
+            id: teamId,
+            name: isPlayer1 ? first.player1 : first.player2,
+            image: isPlayer1 ? first.player1Image : first.player2Image,
+            sportId: parseInt(sportId),
+            leagues: Array.from(new Map(targetMatches.map(m => [m.tournamentId, { id: m.tournamentId, name: m.tournamentName }])).values())
+        };
+
+        if (context.image && !context.image.startsWith('http')) {
+            context.image = `https://sa.1xbet.com/sfiles/logo_teams/${context.image}`;
+        }
+
+        cache.set(cacheKey, context, 3600); // 1h cache
+        return context;
+    } catch (error) {
+        console.error(`Error fetching context for team ${teamId}:`, error.message);
+        return null;
+    }
+};
+
+export const fetchTeamResults = async (teamId, sportId = 1, lang = 'fr', teamName = null) => {
+    const cacheKey = `team_results_${teamId}_${sportId}_${lang}_${teamName || ''}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return cached;
+
+    const dates = [];
+    const now = new Date();
+    // Check last 21 days to be safe (international breaks can be long)
+    for (let i = 0; i < 21; i++) {
+        const d = new Date(now);
+        d.setDate(now.getDate() - i);
+        dates.push(d.toISOString().split('T')[0]);
+    }
+
+    try {
+        const results = [];
+        const teamIdNum = parseInt(teamId, 10);
+
+        for (const date of dates) {
+            const path = `/service-api/LineFeed/GetResultsZip?sports=${sportId}&day=${date}&lng=${lang}&partner=1`;
+            const data = await fetchWithRotation(path, '1xbet').catch(() => null);
+            
+            if (data) {
+                if (typeof data === 'string') {
+                    try {
+                        data = JSON.parse(data);
+                    } catch (e) {
+                        // Not JSON, probably HTML or other
+                        data = null;
+                    }
+                }
+                
+                if (!data) continue;
+
+                let value = data.Value || data.Result;
+                const isNumericKeyed = !value && !Array.isArray(data) && data["0"] !== undefined;
+                
+                if (!value) {
+                    if (Array.isArray(data)) value = data;
+                    else if (isNumericKeyed) value = Object.values(data);
+                }
+
+                if (Array.isArray(value)) {
+                    value.forEach(league => {
+                        const matches = league.G || [];
+                        const teamMatches = matches.filter(m => {
+                            const matchById = String(m.O1I) === String(teamId) || String(m.O2I) === String(teamId);
+                            if (matchById) return true;
+                            if (teamName) {
+                                const n = teamName.toLowerCase();
+                                return m.O1?.toLowerCase().includes(n) || m.O2?.toLowerCase().includes(n);
+                            }
+                            return false;
+                        });
+                        
+                        if (teamMatches.length > 0) {
+                            console.log(`[Debug] Found ${teamMatches.length} matches for team ${teamId} on ${date}`);
+                        }
+
+                        teamMatches.forEach(m => {
+                        results.push({
+                            id: String(m.I),
+                            name: `${m.O1} v ${m.O2}`,
+                            player1: m.O1,
+                            player2: m.O2,
+                            score: m.SS,
+                            date: m.S,
+                            tournamentId: String(league.I),
+                            tournamentName: league.L,
+                            sportId: parseInt(sportId),
+                            isFinished: true
+                        });
+                    });
+                });
+            }
+        }
+        if (results.length >= 5) break;
+    }
+
+        return results;
+    } catch (error) {
+        console.error(`Error fetching results for team ${teamId}:`, error.message);
+        return [];
+    }
+};
+
+export const fetchTeamMatches = async (teamId, sportId = 1, lang = 'fr', name = null) => {
+    const cacheKey = `team_matches_${teamId}_${sportId}_${lang}_${name || ''}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return cached;
+
+    try {
+        const teamIdNum = parseInt(teamId, 10);
+
+        const [live, upcoming] = await Promise.all([
+            fetchLiveMatches(sportId, lang).catch(() => []),
+            fetchUpcomingMatches(sportId, lang).catch(() => [])
+        ]);
+
+        const allCurrent = [...live, ...upcoming];
+        let teamCurrent = allCurrent.filter(m => m.player1Id === teamIdNum || m.player2Id === teamIdNum);
+
+        // FALLBACK: Use search if no direct matches found (very useful for football leagues)
+        if (teamCurrent.length === 0 && name) {
+            const searchResults = await searchGlobal(name, lang, '1');
+            const searchMatches = searchResults.filter(r => (r.type === 'event' || r.type === 'match' || r.type === 1) && r.id);
+            
+            teamCurrent = searchMatches.filter(m => 
+                String(m.player1Id) === String(teamId) || 
+                String(m.player2Id) === String(teamId) ||
+                m.player1?.toLowerCase().includes(name.toLowerCase()) || 
+                m.player2?.toLowerCase().includes(name.toLowerCase())
+            );
+        }
+
+        // Try to get team name from context if not available for results fallback
+        let teamName = name;
+        if (!teamName && teamCurrent.length > 0) {
+            teamName = teamCurrent[0].player1Id === teamIdNum ? teamCurrent[0].player1 : teamCurrent[0].player2;
+        }
+
+        const teamResults = await fetchTeamResults(teamId, sportId, lang, teamName);
+
+        const nowSec = Math.floor(Date.now() / 1000);
+        
+        const response = {
+            today: teamCurrent.filter(m => {
+                const matchTime = m.time;
+                const matchDate = new Date(matchTime * 1000).toISOString().split('T')[0];
+                const todayDate = new Date().toISOString().split('T')[0];
+                return matchDate === todayDate || m.isLive;
+            }).sort((a, b) => a.time - b.time)[0] || null,
+
+            next: teamCurrent.filter(m => !m.isLive && m.time > nowSec)
+                  .sort((a, b) => a.time - b.time)[0] || null,
+
+            last: teamResults.sort((a, b) => b.date - a.date)[0] || null
+        };
+
+        cache.set(cacheKey, response, 900);
+        return response;
+    } catch (error) {
+        console.error(`Error building team matches for ${teamId}:`, error.message);
+        return { last: null, today: null, next: null };
+    }
+};
+
 export default {
     fetchLiveMatches,
     fetchUpcomingMatches,
@@ -773,5 +986,8 @@ export default {
     fetchResults,
     fetchTournamentBracket,
     searchGlobal,
-    fetchSports
+    fetchSports,
+    fetchTeamContext,
+    fetchTeamMatches,
+    fetchTeamResults
 };

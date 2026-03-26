@@ -15,6 +15,9 @@ const handler = async (req, res) => {
 
         let results = await searchGlobal(q, finalLang, finalTz);
 
+        // Optionnel : Enrichir les équipes avec leurs ligues si elles sont présentes dans les matchs de recherche
+        // (Déjà fait partiellement par searchGlobal qui retourne des events/leagues)
+
         res.status(200).json({
             success: true,
             version: VERSION,

@@ -1,5 +1,6 @@
 // robustSearchService.js
 // Handles domain rotation to bypass IP blocks in serverless environments like Vercel.
+import { gotScraping } from 'got-scraping';
 
 const XBET_MIRRORS = [
     'https://sa.1xbet.com',
@@ -26,28 +27,35 @@ export async function fetchWithRotation(path, type = '1xbet', options = {}) {
             const url = `${mirror}${path}`;
             console.log(`[RobustSearch] Trying mirror: ${url}`);
 
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout per mirror
-
-            const response = await fetch(url, {
+            const response = await gotScraping.get(url, {
                 ...options,
-                signal: controller.signal,
                 headers: {
-                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
                     'Referer': `${mirror}/en/`,
+                    'Accept': 'application/json, text/plain, */*',
+                    'X-Requested-With': 'XMLHttpRequest',
                     ...options.headers
-                }
+                },
+                responseType: 'json',
+                timeout: { request: 5000 }
             });
 
-            clearTimeout(timeoutId);
+            if (response.body) {
+                // Basic check if it's HTML instead of JSON
+                const bodyStr = typeof response.body === 'string' ? response.body.trim() : '';
+                const isHtml = bodyStr.startsWith('<') || bodyStr.startsWith('<!doctype') || bodyStr.startsWith('﻿<');
+                
+                if (isHtml) {
+                    console.log(`[RobustSearch] Mirror ${mirror} returned HTML instead of JSON, skipping...`);
+                    errors.push(`${mirror}: Returned HTML`);
+                    continue;
+                }
 
-            if (response.ok) {
-                const data = await response.json();
                 console.log(`[RobustSearch] Success with mirror: ${mirror}`);
-                return data;
+                return response.body;
             }
 
-            errors.push(`${mirror}: HTTP ${response.status}`);
+            errors.push(`${mirror}: Empty body`);
         } catch (err) {
             console.error(`[RobustSearch] Failed mirror ${mirror}:`, err.message);
             errors.push(`${mirror}: ${err.message}`);
