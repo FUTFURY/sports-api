@@ -1046,8 +1046,6 @@ export const fetchTeamMatches = async (teamId, sportId = 1, lang = 'fr', name = 
                             const todayDate = new Date().toISOString().split('T')[0];
                             return matchDate === todayDate;
                         }) || null,
-                        next: sortedUpcoming[0] || null,
-                        last: sortedPast[0] || null,
                         upcoming: sortedUpcoming,
                         results: sortedPast
                     };
@@ -1067,10 +1065,10 @@ export const fetchTeamMatches = async (teamId, sportId = 1, lang = 'fr', name = 
                 return matchDate === todayDate || m.isLive;
             }).sort((a, b) => a.time - b.time)[0] || null,
 
-            next: teamCurrent.filter(m => !m.isLive && m.time > nowSec)
-                  .sort((a, b) => a.time - b.time)[0] || null,
+            upcoming: teamCurrent.filter(m => !m.isLive && m.time > nowSec)
+                  .sort((a, b) => a.time - b.time),
 
-            last: teamResults.sort((a, b) => b.date - a.date)[0] || null
+            results: teamResults.sort((a, b) => b.date - a.date)
         };
 
         cache.set(cacheKey, response, 900);
