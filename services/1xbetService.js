@@ -956,20 +956,27 @@ export const fetchTeamDetailedStats = async (hexId, lang = 'fr') => {
     try {
         const data = await fetchWithRotation(`/fr/services-api/SiteService/TeamDetailed?teamId=${hexId}&ln=${lang}`, 'stat');
         
-        const mapStatMatch = (m) => ({
-            id: String(m.I),
-            name: `${m.H.T} v ${m.A.T}`,
-            player1: m.H.T,
-            player2: m.A.T,
-            player1Id: null,
-            player2Id: null,
-            score: `${m.S1}:${m.S2}`,
-            time: m.D,
-            date: m.D,
-            isLive: false,
-            tournamentName: m.S?.N || null,
-            sportId: 1
-        });
+        const mapStatMatch = (m) => {
+            const hImg = m.H.IM ? (m.H.IM.startsWith('http') ? m.H.IM : `https://sa.1xbet.com${m.H.IM}`) : null;
+            const aImg = m.A.IM ? (m.A.IM.startsWith('http') ? m.A.IM : `https://sa.1xbet.com${m.A.IM}`) : null;
+            
+            return {
+                id: String(m.I),
+                name: `${m.H.T} v ${m.A.T}`,
+                home: m.H.T,
+                away: m.A.T,
+                homeId: m.H.I,
+                awayId: m.A.I,
+                homeImage: hImg,
+                awayImage: aImg,
+                score: `${m.S1}:${m.S2}`,
+                time: m.D,
+                date: m.D,
+                isLive: false,
+                tournamentName: m.S?.N || null,
+                sportId: 1
+            };
+        };
 
         const results = {
             upcoming: (data.F || []).map(mapStatMatch),
@@ -1039,8 +1046,10 @@ export const fetchTeamMatches = async (teamId, sportId = 1, lang = 'fr', name = 
                             const todayDate = new Date().toISOString().split('T')[0];
                             return matchDate === todayDate;
                         }) || null,
-                        next: sortedUpcoming.find(m => m.time > nowSec) || null,
-                        last: sortedPast[0] || null
+                        next: sortedUpcoming[0] || null,
+                        last: sortedPast[0] || null,
+                        upcoming: sortedUpcoming,
+                        results: sortedPast
                     };
                     
                     cache.set(cacheKey, response, 900);
