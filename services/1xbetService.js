@@ -911,6 +911,79 @@ export const fetchTeamResults = async (teamId, sportId = 1, lang = 'fr', teamNam
     }
 };
 
+/**
+ * Maps a team numeric ID to its hexadecimal stat ID via a search by name.
+ */
+export const fetchTeamStatsId = async (name, teamId, sportId = 1, lang = 'fr') => {
+    if (!name) return null;
+    const cacheKey = `stats_id_${teamId}_${sportId}_${lang}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return cached;
+
+    try {
+        const query = encodeURIComponent(name);
+        const data = await fetchWithRotation(`/fr/services-api/core-api/v1/search?search=${query}&sportId=${sportId}&lng=${lang}`, 'stat');
+        
+        if (data && Array.isArray(data.data)) {
+            // Priority 1: Match with teamId in image field (common in 1xBet provider)
+            let match = data.data.find(t => t.image === `${teamId}.png`);
+            
+            // Priority 2: Direct name match if teamId image is missing
+            if (!match) {
+                match = data.data.find(t => t.title && t.title.toLowerCase() === name.toLowerCase());
+            }
+            
+            if (match && match.id) {
+                cache.set(cacheKey, match.id, 86400); // 24h cache
+                return match.id;
+            }
+        }
+        return null;
+    } catch (e) {
+        console.error(`Error mapping stats ID for ${name}:`, e.message);
+        return null;
+    }
+};
+
+/**
+ * Fetches clean match data (past and upcoming) from the stats engine.
+ */
+export const fetchTeamDetailedStats = async (hexId, lang = 'fr') => {
+    const cacheKey = `team_stats_detailed_${hexId}_${lang}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return cached;
+
+    try {
+        const data = await fetchWithRotation(`/fr/services-api/SiteService/TeamDetailed?teamId=${hexId}&ln=${lang}`, 'stat');
+        
+        const mapStatMatch = (m) => ({
+            id: String(m.I),
+            name: `${m.H.T} v ${m.A.T}`,
+            player1: m.H.T,
+            player2: m.A.T,
+            player1Id: null,
+            player2Id: null,
+            score: `${m.S1}:${m.S2}`,
+            time: m.D,
+            date: m.D,
+            isLive: false,
+            tournamentName: m.S?.N || null,
+            sportId: 1
+        });
+
+        const results = {
+            upcoming: (data.F || []).map(mapStatMatch),
+            past: (data.G || []).map(mapStatMatch)
+        };
+
+        cache.set(cacheKey, results, 900);
+        return results;
+    } catch (e) {
+        console.error(`Error fetching detailed stats for ${hexId}:`, e.message);
+        return { upcoming: [], past: [] };
+    }
+};
+
 export const fetchTeamMatches = async (teamId, sportId = 1, lang = 'fr', name = null) => {
     const cacheKey = `team_matches_${teamId}_${sportId}_${lang}_${name || ''}`;
     const cached = cache.get(cacheKey);
@@ -918,6 +991,7 @@ export const fetchTeamMatches = async (teamId, sportId = 1, lang = 'fr', name = 
 
     try {
         const teamIdNum = parseInt(teamId, 10);
+        const sportIdNum = parseInt(sportId, 10);
 
         const [live, upcoming] = await Promise.all([
             fetchLiveMatches(sportId, lang).catch(() => []),
@@ -950,10 +1024,36 @@ export const fetchTeamMatches = async (teamId, sportId = 1, lang = 'fr', name = 
 
         const nowSec = Math.floor(Date.now() / 1000);
         
+        // --- NEW ENHANCED FOOTBALL STATS SOURCE ---
+        if (sportIdNum === 1 && name) {
+            const hexId = await fetchTeamStatsId(name, teamId, sportIdNum, lang);
+            if (hexId) {
+                const stats = await fetchTeamDetailedStats(hexId, lang);
+                if (stats.upcoming.length > 0 || stats.past.length > 0) {
+                    const sortedUpcoming = stats.upcoming.sort((a, b) => a.time - b.time);
+                    const sortedPast = stats.past.sort((a, b) => b.time - a.time);
+                    
+                    const response = {
+                        today: sortedUpcoming.find(m => {
+                            const matchDate = new Date(m.time * 1000).toISOString().split('T')[0];
+                            const todayDate = new Date().toISOString().split('T')[0];
+                            return matchDate === todayDate;
+                        }) || null,
+                        next: sortedUpcoming.find(m => m.time > nowSec) || null,
+                        last: sortedPast[0] || null
+                    };
+                    
+                    cache.set(cacheKey, response, 900);
+                    return response;
+                }
+            }
+        }
+
         const response = {
             today: teamCurrent.filter(m => {
                 const matchTime = m.time;
-                const matchDate = new Date(matchTime * 1000).toISOString().split('T')[0];
+                const matchTimeSec = typeof matchTime === 'number' ? matchTime : Math.floor(new Date(matchTime).getTime() / 1000);
+                const matchDate = new Date(matchTimeSec * 1000).toISOString().split('T')[0];
                 const todayDate = new Date().toISOString().split('T')[0];
                 return matchDate === todayDate || m.isLive;
             }).sort((a, b) => a.time - b.time)[0] || null,
