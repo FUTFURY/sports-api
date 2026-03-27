@@ -969,8 +969,10 @@ export const fetchTeamDetailedStats = async (hexId, lang = 'fr') => {
                 awayId: m.A.I,
                 homeImage: hImg,
                 awayImage: aImg,
-                score: `${m.S1}:${m.S2}`,
-                winner: m.W || 0, // 1=Home, 2=Away, 0=Draw
+                homeScore: m.S1,
+                awayScore: m.S2,
+                isHomeWinner: m.W === 1,
+                isAwayWinner: m.W === 2,
                 time: m.D,
                 date: m.D,
                 isLive: false,
