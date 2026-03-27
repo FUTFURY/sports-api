@@ -12,7 +12,11 @@ const XBET_MIRRORS = [
 
 const STAT_MIRRORS = [
     'https://eventsstat.com',
-    'https://1xstavka.ru' // EventStat engine is often mirrored here
+    'https://1xbit-stat.com',
+    'https://melbet-stat.com',
+    'https://888starz-stat.com',
+    'https://1xstavka.ru',
+    'https://betandyou-stat.com'
 ];
 
 /**

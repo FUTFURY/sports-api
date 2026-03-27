@@ -925,12 +925,17 @@ export const fetchTeamStatsId = async (name, teamId, sportId = 1, lang = 'fr') =
         const data = await fetchWithRotation(`/fr/services-api/core-api/v1/search?search=${query}&sportId=${sportId}&lng=${lang}`, 'stat');
         
         if (data && Array.isArray(data.data)) {
-            // Priority 1: Match with teamId in image field (common in 1xBet provider)
-            let match = data.data.find(t => t.image === `${teamId}.png`);
+            // Priority 1: Match with teamId in image field
+            let match = data.data.find(t => t.image === `${teamId}.png` || (t.image && t.image.includes(String(teamId))));
             
             // Priority 2: Direct name match if teamId image is missing
             if (!match) {
                 match = data.data.find(t => t.title && t.title.toLowerCase() === name.toLowerCase());
+            }
+            
+            // Priority 3: Partial name search
+            if (!match) {
+                match = data.data.find(t => t.title && t.title.toLowerCase().includes(name.toLowerCase()) && !t.title.includes(' II') && !t.title.includes(' B'));
             }
             
             if (match && match.id) {
