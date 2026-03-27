@@ -9,14 +9,14 @@ async function handler(req, res) {
     }
 
     const { id } = req.query;
-    const { name, sportId = '1', lang = 'fr' } = req.query;
-
-    if (!id) {
-        return res.status(400).json({ success: false, error: 'Team ID is required' });
+    const { name, sportId = '1', lang = 'fr', statId } = req.query;
+    
+    if (!id && !statId) {
+        return res.status(400).json({ success: false, error: 'Team ID or Stat ID is required' });
     }
 
     try {
-        const matches = await xbet.fetchTeamMatches(id, sportId, lang, name);
+        const matches = await xbet.fetchTeamMatches(id || '0', sportId, lang, name, statId);
         
         res.status(200).json({
             success: true,

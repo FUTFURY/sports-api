@@ -999,8 +999,8 @@ export const fetchTeamDetailedStats = async (hexId, lang = 'fr') => {
     }
 };
 
-export const fetchTeamMatches = async (teamId, sportId = 1, lang = 'fr', name = null) => {
-    const cacheKey = `team_matches_${teamId}_${sportId}_${lang}_${name || ''}`;
+export const fetchTeamMatches = async (teamId, sportId = 1, lang = 'fr', name = null, statId = null) => {
+    const cacheKey = `team_matches_${teamId}_${sportId}_${lang}_${name || ''}_${statId || ''}`;
     const cached = cache.get(cacheKey);
     if (cached) return cached;
 
@@ -1017,7 +1017,7 @@ export const fetchTeamMatches = async (teamId, sportId = 1, lang = 'fr', name = 
         let teamCurrent = allCurrent.filter(m => m.player1Id === teamIdNum || m.player2Id === teamIdNum);
 
         // FALLBACK: Use search if no direct matches found (very useful for football leagues)
-        if (teamCurrent.length === 0 && name) {
+        if (teamCurrent.length === 0 && name && teamIdNum > 0) {
             const searchResults = await searchGlobal(name, lang, '1');
             const searchMatches = searchResults.filter(r => (r.type === 'event' || r.type === 'match' || r.type === 1) && r.id);
             
@@ -1051,8 +1051,8 @@ export const fetchTeamMatches = async (teamId, sportId = 1, lang = 'fr', name = 
         const nowSec = Math.floor(Date.now() / 1000);
         
         // --- NEW ENHANCED FOOTBALL STATS SOURCE ---
-        if (sportIdNum === 1 && name) {
-            const hexId = await fetchTeamStatsId(name, teamId, sportIdNum, lang);
+        if (sportIdNum === 1 && (name || statId)) {
+            const hexId = statId || await fetchTeamStatsId(name, teamId, sportIdNum, lang);
             if (hexId) {
                 const stats = await fetchTeamDetailedStats(hexId, lang);
                 if (stats.upcoming.length > 0 || stats.past.length > 0) {
