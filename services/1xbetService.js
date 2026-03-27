@@ -1000,102 +1000,33 @@ export const fetchTeamDetailedStats = async (hexId, lang = 'fr') => {
 };
 
 export const fetchTeamMatches = async (teamId = null, sportId = 1, lang = 'fr', name = null, statId = null) => {
-    const cacheKey = `team_matches_${teamId || 'no_id'}_${sportId}_${lang}_${name || ''}_${statId || ''}`;
+    // Priority to statId from query, then name-based mapping, but since user said "simplify-statId only", we focus on that.
+    const finalStatId = statId || await fetchTeamStatsId(name, teamId, sportId, lang);
+    if (!finalStatId) return { today: null, upcoming: [], results: [] };
+
+    const cacheKey = `team_matches_clean_${finalStatId}_${lang}`;
     const cached = cache.get(cacheKey);
     if (cached) return cached;
 
     try {
-        const teamIdNum = teamId ? parseInt(teamId, 10) : null;
-        const sportIdNum = parseInt(sportId, 10);
-
-        // --- PRIORITY: STAT ID DIRECT ---
-        if (sportIdNum === 1 && statId) {
-            const stats = await fetchTeamDetailedStats(statId, lang);
-            if (stats.upcoming.length > 0 || stats.past.length > 0) {
-                const sortedUpcoming = stats.upcoming.sort((a, b) => a.time - b.time);
-                const sortedPast = stats.past.sort((a, b) => b.time - a.time);
-                
-                const response = {
-                    today: sortedUpcoming.find(m => {
-                        const matchDate = new Date(m.time * 1000).toISOString().split('T')[0];
-                        const todayDate = new Date().toISOString().split('T')[0];
-                        return matchDate === todayDate;
-                    }) || null,
-                    upcoming: sortedUpcoming,
-                    results: sortedPast
-                };
-                
-                cache.set(cacheKey, response, 900);
-                return response;
-            }
-        }
-
-        // --- SECONDARY: 1BET DIRECT ID ---
-        const [live, upcoming] = await Promise.all([
-            fetchLiveMatches(sportId, lang).catch(() => []),
-            fetchUpcomingMatches(sportId, lang).catch(() => [])
-        ]);
-
-        const allCurrent = [...live, ...upcoming];
-        let teamCurrent = [];
-        if (teamIdNum) { // Only filter by teamId if it's provided
-            teamCurrent = allCurrent.filter(m => m.player1Id === teamIdNum || m.player2Id === teamIdNum);
-        }
-
-        // Try to get team name from context for results fallback
-        let teamName = name;
-        if (!teamName && teamCurrent.length > 0) {
-            teamName = teamCurrent[0].player1Id === teamIdNum ? teamCurrent[0].player1 : teamCurrent[0].player2;
-        }
-
-        const teamResults = await fetchTeamResults(teamId, sportId, lang, teamName);
-
-        const nowSec = Math.floor(Date.now() / 1000);
+        const stats = await fetchTeamDetailedStats(finalStatId, lang);
+        const sortedUpcoming = (stats.upcoming || []).sort((a, b) => a.time - b.time);
+        const sortedPast = (stats.past || []).sort((a, b) => b.time - a.time);
         
-        // --- NEW ENHANCED FOOTBALL STATS SOURCE (if not already returned by direct statId) ---
-        if (sportIdNum === 1 && (name || teamId) && !statId) { // Only try to fetch statId if not already provided
-            const hexId = await fetchTeamStatsId(name, teamId, sportIdNum, lang);
-            if (hexId) {
-                const stats = await fetchTeamDetailedStats(hexId, lang);
-                if (stats.upcoming.length > 0 || stats.past.length > 0) {
-                    const sortedUpcoming = stats.upcoming.sort((a, b) => a.time - b.time);
-                    const sortedPast = stats.past.sort((a, b) => b.time - a.time);
-                    
-                    const response = {
-                        today: sortedUpcoming.find(m => {
-                            const matchDate = new Date(m.time * 1000).toISOString().split('T')[0];
-                            const todayDate = new Date().toISOString().split('T')[0];
-                            return matchDate === todayDate;
-                        }) || null,
-                        upcoming: sortedUpcoming,
-                        results: sortedPast
-                    };
-                    
-                    cache.set(cacheKey, response, 900);
-                    return response;
-                }
-            }
-        }
-
         const response = {
-            today: teamCurrent.filter(m => {
-                const matchTime = m.time;
-                const matchTimeSec = typeof matchTime === 'number' ? matchTime : Math.floor(new Date(matchTime).getTime() / 1000);
-                const matchDate = new Date(matchTimeSec * 1000).toISOString().split('T')[0];
+            today: sortedUpcoming.find(m => {
+                const matchDate = new Date(m.time * 1000).toISOString().split('T')[0];
                 const todayDate = new Date().toISOString().split('T')[0];
-                return matchDate === todayDate || m.isLive;
-            }).sort((a, b) => a.time - b.time)[0] || null,
-
-            upcoming: teamCurrent.filter(m => !m.isLive && m.time > nowSec)
-                  .sort((a, b) => a.time - b.time),
-
-            results: teamResults.sort((a, b) => b.date - a.date)
+                return matchDate === todayDate;
+            }) || null,
+            upcoming: sortedUpcoming,
+            results: sortedPast
         };
-
+        
         cache.set(cacheKey, response, 900);
         return response;
     } catch (error) {
-        console.error(`Error building team matches for ${teamId || statId}:`, error.message);
+        console.error(`Error fetching matches for statId ${finalStatId}:`, error.message);
         return { today: null, upcoming: [], results: [] };
     }
 };
