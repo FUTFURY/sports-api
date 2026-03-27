@@ -1049,6 +1049,56 @@ export const fetchChampionshipDetailedStats = async (hexId, lang = 'fr') => {
     }
 };
 
+/**
+ * Fetches clean match data (past and upcoming) for an ATHLETE/PLAYER.
+ */
+export const fetchPlayerDetailedStats = async (hexId, lang = 'fr') => {
+    const cacheKey = `player_stats_detailed_${hexId}_${lang}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return cached;
+
+    try {
+        const data = await fetchWithRotation(`/fr/services-api/SiteService/PlayerDetailed?playerId=${hexId}&ln=${lang}`, 'stat');
+        
+        const mapStatMatch = (m) => {
+            const hImg = m.H.IM ? (m.H.IM.startsWith('http') ? m.H.IM : `https://sa.1xbet.com${m.H.IM}`) : null;
+            const aImg = m.A.IM ? (m.A.IM.startsWith('http') ? m.A.IM : `https://sa.1xbet.com${m.A.IM}`) : null;
+            
+            return {
+                id: String(m.I),
+                name: `${m.H.T} v ${m.A.T}`,
+                home: m.H.T,
+                away: m.A.T,
+                homeId: m.H.I,
+                awayId: m.A.I,
+                homeImage: hImg,
+                awayImage: aImg,
+                homeScore: m.S1,
+                awayScore: m.S2,
+                isHomeWinner: m.W === 1,
+                isAwayWinner: m.W === 2,
+                time: m.D || m.T,
+                date: m.D || m.T,
+                isLive: false,
+                tournamentName: m.S?.N || null,
+                sportId: 1
+            };
+        };
+
+        const results = {
+            playerName: data.P?.N || null,
+            upcoming: (data.F || data.upcoming || []).map(mapStatMatch),
+            past: (data.G || data.results || []).map(mapStatMatch)
+        };
+
+        cache.set(cacheKey, results, 900);
+        return results;
+    } catch (e) {
+        console.error(`Error fetching detailed player stats for ${hexId}:`, e.message);
+        return { playerName: null, upcoming: [], past: [] };
+    }
+};
+
 export const fetchTeamMatches = async (teamId = null, sportId = 1, lang = 'fr', name = null, statId = null) => {
     // Priority to statId from query, then name-based mapping, but since user said "simplify-statId only", we focus on that.
     const finalStatId = statId || await fetchTeamStatsId(name, teamId, sportId, lang);
@@ -1100,5 +1150,6 @@ export default {
     fetchTeamMatches,
     fetchTeamResults,
     fetchTeamDetailedStats,
-    fetchChampionshipDetailedStats
+    fetchChampionshipDetailedStats,
+    fetchPlayerDetailedStats
 };

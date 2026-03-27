@@ -14,24 +14,24 @@ async function handler(req, res) {
     }
 
     try {
+        let results = null;
+
         // Try fetching as Team first
         console.log(`[Debug] Trying as team for statId: ${statId}`);
-        let stats = await xbet.fetchTeamDetailedStats(statId, lang).catch(() => null);
+        const teamStats = await xbet.fetchTeamDetailedStats(statId, lang).catch(() => null);
         
-        let results = null;
-        
-        // If it's a team (has matches in upcoming or past)
-        if (stats && (stats.upcoming?.length > 0 || stats.past?.length > 0)) {
-            const sortedUpcoming = (stats.upcoming || []).sort((a, b) => a.time - b.time);
+        if (teamStats && (teamStats.upcoming?.length > 0 || teamStats.past?.length > 0)) {
+            const sortedUpcoming = (teamStats.upcoming || []).sort((a, b) => a.time - b.time);
             results = {
                 entityType: 'team',
+                name: teamStats.name || null,
                 today: sortedUpcoming.find(m => {
                     const matchDate = new Date(m.time * 1000).toISOString().split('T')[0];
                     const todayDate = new Date().toISOString().split('T')[0];
                     return matchDate === todayDate;
                 }) || null,
                 upcoming: sortedUpcoming,
-                results: (stats.past || []).sort((a, b) => b.time - a.time)
+                results: (teamStats.past || []).sort((a, b) => b.time - a.time)
             };
         } else {
             // Try fetching as Championship/League
@@ -43,11 +43,22 @@ async function handler(req, res) {
                     ...leagueStats,
                     entityType: 'league'
                 };
+            } else {
+                // Try fetching as Player/Athlete
+                console.log(`[Debug] Trying as player for statId: ${statId}`);
+                const playerStats = await xbet.fetchPlayerDetailedStats(statId, lang).catch(() => null);
+                
+                if (playerStats && (playerStats.upcoming?.length > 0 || playerStats.past?.length > 0)) {
+                    results = {
+                        ...playerStats,
+                        entityType: 'athlete'
+                    };
+                }
             }
         }
 
         if (!results) {
-            return res.status(404).json({ success: false, error: 'Entity not found or no matches available' });
+            return res.status(404).json({ success: false, error: 'Entity not found or no matches available for this ID' });
         }
         
         res.status(200).json({
