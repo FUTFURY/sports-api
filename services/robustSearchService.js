@@ -12,6 +12,7 @@ const XBET_MIRRORS = [
 
 const STAT_MIRRORS = [
     'https://eventsstat.com',
+    'https://sa.1xbet.com',
     'https://1xbit-stat.com',
     'https://melbet-stat.com',
     'https://888starz-stat.com',
@@ -61,6 +62,17 @@ export async function fetchWithRotation(path, type = '1xbet', options = {}) {
 
             errors.push(`${mirror}: Empty body`);
         } catch (err) {
+            // Stats mirrors often fluctuate between /services-api/ and /service-api/
+            if (type === 'stat' && (path.includes('service-api') || path.includes('services-api'))) {
+                const altPath = path.includes('services-api') ? path.replace('services-api', 'service-api') : path.replace('service-api', 'services-api');
+                try {
+                   console.log(`[RobustSearch] Retrying alternate path for ${mirror}: ${altPath}`);
+                   const responseAlt = await gotScraping.get(`${mirror}${altPath}`, { ...options, responseType: 'json', timeout: { request: 3000 } });
+                   if (responseAlt.body && responseAlt.body.success !== false) {
+                       return responseAlt.body;
+                   }
+                } catch (e2) { /* ignore retry failure */ }
+            }
             console.error(`[RobustSearch] Failed mirror ${mirror}:`, err.message);
             errors.push(`${mirror}: ${err.message}`);
         }

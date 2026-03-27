@@ -1011,34 +1011,42 @@ export const fetchChampionshipDetailedStats = async (hexId, lang = 'fr') => {
         const data = await fetchWithRotation(`/fr/services-api/SiteService/ChampionshipDetailed?championshipId=${hexId}&ln=${lang}`, 'stat');
         
         const mapStatMatch = (m) => {
-            const hImg = m.H.IM ? (m.H.IM.startsWith('http') ? m.H.IM : `https://sa.1xbet.com${m.H.IM}`) : null;
-            const aImg = m.A.IM ? (m.A.IM.startsWith('http') ? m.A.IM : `https://sa.1xbet.com${m.A.IM}`) : null;
+            const hImg = m.H?.IM ? (m.H.IM.startsWith('http') ? m.H.IM : `https://sa.1xbet.com${m.H.IM}`) : null;
+            const aImg = m.A?.IM ? (m.A.IM.startsWith('http') ? m.A.IM : `https://sa.1xbet.com${m.A.IM}`) : null;
             
             return {
                 id: String(m.I),
-                name: `${m.H.T} v ${m.A.T}`,
-                home: m.H.T,
-                away: m.A.T,
-                homeId: m.H.I,
-                awayId: m.A.I,
+                name: `${m.H?.T || ''} v ${m.A?.T || ''}`,
+                home: m.H?.T || null,
+                away: m.A?.T || null,
+                homeId: m.H?.I || null,
+                awayId: m.A?.I || null,
                 homeImage: hImg,
                 awayImage: aImg,
-                homeScore: m.S1,
-                awayScore: m.S2,
+                homeScore: m.S1 || 0,
+                awayScore: m.S2 || 0,
                 isHomeWinner: m.W === 1,
                 isAwayWinner: m.W === 2,
-                time: m.D,
-                date: m.D,
+                time: m.D || m.T,
+                date: m.D || m.T,
                 isLive: false,
-                tournamentName: data.C?.N || null,
+                tournamentName: data.C?.N || m.S?.N || null,
                 sportId: 1
             };
         };
 
+        const sortedUpcoming = (data.F || data.upcoming || []).map(mapStatMatch).sort((a, b) => a.time - b.time);
+        const sortedPast = (data.G || data.results || []).map(mapStatMatch).sort((a, b) => b.time - a.time);
+
         const results = {
-            name: data.C?.N || null,
-            upcoming: (data.F || []).map(mapStatMatch),
-            past: (data.G || []).map(mapStatMatch)
+            name: data.C?.N || data.playerName || null,
+            today: sortedUpcoming.find(m => {
+                const matchDate = new Date(m.time * 1000).toISOString().split('T')[0];
+                const todayDate = new Date().toISOString().split('T')[0];
+                return matchDate === todayDate;
+            }) || null,
+            upcoming: sortedUpcoming,
+            results: sortedPast
         };
 
         cache.set(cacheKey, results, 900);
