@@ -999,48 +999,50 @@ export const fetchTeamDetailedStats = async (hexId, lang = 'fr') => {
     }
 };
 
-export const fetchTeamMatches = async (teamId, sportId = 1, lang = 'fr', name = null, statId = null) => {
-    const cacheKey = `team_matches_${teamId}_${sportId}_${lang}_${name || ''}_${statId || ''}`;
+export const fetchTeamMatches = async (teamId = null, sportId = 1, lang = 'fr', name = null, statId = null) => {
+    const cacheKey = `team_matches_${teamId || 'no_id'}_${sportId}_${lang}_${name || ''}_${statId || ''}`;
     const cached = cache.get(cacheKey);
     if (cached) return cached;
 
     try {
-        const teamIdNum = parseInt(teamId, 10);
+        const teamIdNum = teamId ? parseInt(teamId, 10) : null;
         const sportIdNum = parseInt(sportId, 10);
 
+        // --- PRIORITY: STAT ID DIRECT ---
+        if (sportIdNum === 1 && statId) {
+            const stats = await fetchTeamDetailedStats(statId, lang);
+            if (stats.upcoming.length > 0 || stats.past.length > 0) {
+                const sortedUpcoming = stats.upcoming.sort((a, b) => a.time - b.time);
+                const sortedPast = stats.past.sort((a, b) => b.time - a.time);
+                
+                const response = {
+                    today: sortedUpcoming.find(m => {
+                        const matchDate = new Date(m.time * 1000).toISOString().split('T')[0];
+                        const todayDate = new Date().toISOString().split('T')[0];
+                        return matchDate === todayDate;
+                    }) || null,
+                    upcoming: sortedUpcoming,
+                    results: sortedPast
+                };
+                
+                cache.set(cacheKey, response, 900);
+                return response;
+            }
+        }
+
+        // --- SECONDARY: 1BET DIRECT ID ---
         const [live, upcoming] = await Promise.all([
             fetchLiveMatches(sportId, lang).catch(() => []),
             fetchUpcomingMatches(sportId, lang).catch(() => [])
         ]);
 
         const allCurrent = [...live, ...upcoming];
-        let teamCurrent = allCurrent.filter(m => m.player1Id === teamIdNum || m.player2Id === teamIdNum);
-
-        // FALLBACK: Use search if no direct matches found (very useful for football leagues)
-        if (teamCurrent.length === 0 && name && teamIdNum > 0) {
-            const searchResults = await searchGlobal(name, lang, '1');
-            const searchMatches = searchResults.filter(r => (r.type === 'event' || r.type === 'match' || r.type === 1) && r.id);
-            
-            teamCurrent = searchMatches.filter(m => {
-                // Strict sport filter
-                if (parseInt(m.sportId) !== sportIdNum) return false;
-                
-                // Exclude common noise in team names/subtitles
-                const isAlternative = m.subtitle?.toLowerCase().includes('alternatif') || m.name?.toLowerCase().includes('alternatif');
-                if (isAlternative) return false;
-
-                const idMatch = String(m.player1Id) === String(teamId) || String(m.player2Id) === String(teamId);
-                const p1Match = m.player1?.toLowerCase() === name.toLowerCase();
-                const p2Match = m.player2?.toLowerCase() === name.toLowerCase();
-                const partialMatch = m.player1?.toLowerCase().includes(name.toLowerCase()) || m.player2?.toLowerCase().includes(name.toLowerCase());
-                
-                // If we have an ID match or an exact name match, we take it. 
-                // If it's a "Team II" or different sub-team, we only take it if nothing better found.
-                return idMatch || p1Match || p2Match || (partialMatch && !m.player1?.includes(' II') && !m.player2?.includes(' II'));
-            });
+        let teamCurrent = [];
+        if (teamIdNum) { // Only filter by teamId if it's provided
+            teamCurrent = allCurrent.filter(m => m.player1Id === teamIdNum || m.player2Id === teamIdNum);
         }
 
-        // Try to get team name from context if not available for results fallback
+        // Try to get team name from context for results fallback
         let teamName = name;
         if (!teamName && teamCurrent.length > 0) {
             teamName = teamCurrent[0].player1Id === teamIdNum ? teamCurrent[0].player1 : teamCurrent[0].player2;
@@ -1050,9 +1052,9 @@ export const fetchTeamMatches = async (teamId, sportId = 1, lang = 'fr', name = 
 
         const nowSec = Math.floor(Date.now() / 1000);
         
-        // --- NEW ENHANCED FOOTBALL STATS SOURCE ---
-        if (sportIdNum === 1 && (name || statId)) {
-            const hexId = statId || await fetchTeamStatsId(name, teamId, sportIdNum, lang);
+        // --- NEW ENHANCED FOOTBALL STATS SOURCE (if not already returned by direct statId) ---
+        if (sportIdNum === 1 && (name || teamId) && !statId) { // Only try to fetch statId if not already provided
+            const hexId = await fetchTeamStatsId(name, teamId, sportIdNum, lang);
             if (hexId) {
                 const stats = await fetchTeamDetailedStats(hexId, lang);
                 if (stats.upcoming.length > 0 || stats.past.length > 0) {
@@ -1093,8 +1095,8 @@ export const fetchTeamMatches = async (teamId, sportId = 1, lang = 'fr', name = 
         cache.set(cacheKey, response, 900);
         return response;
     } catch (error) {
-        console.error(`Error building team matches for ${teamId}:`, error.message);
-        return { last: null, today: null, next: null };
+        console.error(`Error building team matches for ${teamId || statId}:`, error.message);
+        return { today: null, upcoming: [], results: [] };
     }
 };
 
