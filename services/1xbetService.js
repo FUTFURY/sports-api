@@ -1016,12 +1016,23 @@ export const fetchTeamMatches = async (teamId, sportId = 1, lang = 'fr', name = 
             const searchResults = await searchGlobal(name, lang, '1');
             const searchMatches = searchResults.filter(r => (r.type === 'event' || r.type === 'match' || r.type === 1) && r.id);
             
-            teamCurrent = searchMatches.filter(m => 
-                String(m.player1Id) === String(teamId) || 
-                String(m.player2Id) === String(teamId) ||
-                m.player1?.toLowerCase().includes(name.toLowerCase()) || 
-                m.player2?.toLowerCase().includes(name.toLowerCase())
-            );
+            teamCurrent = searchMatches.filter(m => {
+                // Strict sport filter
+                if (parseInt(m.sportId) !== sportIdNum) return false;
+                
+                // Exclude common noise in team names/subtitles
+                const isAlternative = m.subtitle?.toLowerCase().includes('alternatif') || m.name?.toLowerCase().includes('alternatif');
+                if (isAlternative) return false;
+
+                const idMatch = String(m.player1Id) === String(teamId) || String(m.player2Id) === String(teamId);
+                const p1Match = m.player1?.toLowerCase() === name.toLowerCase();
+                const p2Match = m.player2?.toLowerCase() === name.toLowerCase();
+                const partialMatch = m.player1?.toLowerCase().includes(name.toLowerCase()) || m.player2?.toLowerCase().includes(name.toLowerCase());
+                
+                // If we have an ID match or an exact name match, we take it. 
+                // If it's a "Team II" or different sub-team, we only take it if nothing better found.
+                return idMatch || p1Match || p2Match || (partialMatch && !m.player1?.includes(' II') && !m.player2?.includes(' II'));
+            });
         }
 
         // Try to get team name from context if not available for results fallback
