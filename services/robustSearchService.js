@@ -27,54 +27,57 @@ export async function fetchWithRotation(path, type = '1xbet', options = {}) {
     const mirrors = type === '1xbet' ? XBET_MIRRORS : STAT_MIRRORS;
     const errors = [];
 
-    for (const mirror of mirrors) {
-        try {
-            const url = `${mirror}${path}`;
-            console.log(`[RobustSearch] Trying mirror: ${url}`);
+    // For stats, prioritize mirroring sa.1xbet.com if it's in the list
+    const sortedMirrors = type === 'stat' ? 
+        [...mirrors].sort((a,b) => a.includes('1xbet') ? -1 : 1) : mirrors;
 
-            const response = await gotScraping.get(url, {
-                ...options,
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-                    'Referer': `${mirror}/en/`,
-                    'Accept': 'application/json, text/plain, */*',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    ...options.headers
-                },
-                responseType: 'json',
-                timeout: { request: 5000 }
-            });
+    for (const mirror of sortedMirrors) {
+        // Try original path and potential alternate path
+        const pathsToTry = [path];
+        if (type === 'stat' && (path.includes('services-api') || path.includes('service-api'))) {
+            const alt = path.includes('services-api') ? path.replace('services-api', 'service-api') : path.replace('service-api', 'services-api');
+            pathsToTry.push(alt);
+        }
 
-            if (response.body) {
-                // Basic check if it's HTML instead of JSON
-                const bodyStr = typeof response.body === 'string' ? response.body.trim() : '';
-                const isHtml = bodyStr.startsWith('<') || bodyStr.startsWith('<!doctype') || bodyStr.startsWith('﻿<');
-                
-                if (isHtml) {
-                    console.log(`[RobustSearch] Mirror ${mirror} returned HTML instead of JSON, skipping...`);
-                    errors.push(`${mirror}: Returned HTML`);
-                    continue;
+        for (const currentPath of pathsToTry) {
+            try {
+                const url = `${mirror}${currentPath}`;
+                console.log(`[RobustSearch] Trying mirror: ${url}`);
+
+                const response = await gotScraping.get(url, {
+                    ...options,
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                        'Referer': `${mirror}/en/`,
+                        'Accept': 'application/json, text/plain, */*',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        ...options.headers
+                    },
+                    responseType: 'json',
+                    timeout: { request: 5000 }
+                });
+
+                if (response.body) {
+                    const bodyStr = typeof response.body === 'string' ? response.body.trim() : '';
+                    const isHtml = bodyStr.startsWith('<') || bodyStr.startsWith('<!doctype') || bodyStr.startsWith('﻿<');
+                    
+                    if (isHtml) {
+                        console.log(`[RobustSearch] Mirror ${mirror} returned HTML for ${currentPath}, skipping...`);
+                        continue;
+                    }
+
+                    if (response.body.success === false && response.body.message) {
+                        console.log(`[RobustSearch] Mirror ${mirror} returned success:false for ${currentPath}: ${response.body.message}`);
+                        continue;
+                    }
+
+                    console.log(`[RobustSearch] Success with mirror: ${mirror} on path ${currentPath}`);
+                    return response.body;
                 }
-
-                console.log(`[RobustSearch] Success with mirror: ${mirror}`);
-                return response.body;
+            } catch (err) {
+                console.error(`[RobustSearch] Failed mirror ${mirror} on ${currentPath}:`, err.message);
+                errors.push(`${mirror}${currentPath}: ${err.message}`);
             }
-
-            errors.push(`${mirror}: Empty body`);
-        } catch (err) {
-            // Stats mirrors often fluctuate between /services-api/ and /service-api/
-            if (type === 'stat' && (path.includes('service-api') || path.includes('services-api'))) {
-                const altPath = path.includes('services-api') ? path.replace('services-api', 'service-api') : path.replace('service-api', 'services-api');
-                try {
-                   console.log(`[RobustSearch] Retrying alternate path for ${mirror}: ${altPath}`);
-                   const responseAlt = await gotScraping.get(`${mirror}${altPath}`, { ...options, responseType: 'json', timeout: { request: 3000 } });
-                   if (responseAlt.body && responseAlt.body.success !== false) {
-                       return responseAlt.body;
-                   }
-                } catch (e2) { /* ignore retry failure */ }
-            }
-            console.error(`[RobustSearch] Failed mirror ${mirror}:`, err.message);
-            errors.push(`${mirror}: ${err.message}`);
         }
     }
 
