@@ -1098,5 +1098,7 @@ export default {
     fetchSports,
     fetchTeamContext,
     fetchTeamMatches,
-    fetchTeamResults
+    fetchTeamResults,
+    fetchTeamDetailedStats,
+    fetchChampionshipDetailedStats
 };
