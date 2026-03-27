@@ -7,31 +7,47 @@ async function handler(req, res) {
         return res.status(405).json({ success: false, error: 'Method not allowed' });
     }
 
-    const { statId, type = 'team', lang = 'fr' } = req.query;
+    const { statId, lang = 'fr' } = req.query;
 
     if (!statId) {
         return res.status(400).json({ success: false, error: 'statId (Hex ID) is required' });
     }
 
     try {
-        let results;
-        if (type === 'league' || type === 'championship') {
-            results = await xbet.fetchChampionshipDetailedStats(statId, lang);
-        } else {
-            // Default to team stats
-            results = await xbet.fetchTeamDetailedStats(statId, lang);
-            
-            // Re-format team results to match the simpler team-matches format
-            const sortedUpcoming = (results.upcoming || []).sort((a, b) => a.time - b.time);
+        // Try fetching as Team first
+        console.log(`[Debug] Trying as team for statId: ${statId}`);
+        let stats = await xbet.fetchTeamDetailedStats(statId, lang).catch(() => null);
+        
+        let results = null;
+        
+        // If it's a team (has matches in upcoming or past)
+        if (stats && (stats.upcoming?.length > 0 || stats.past?.length > 0)) {
+            const sortedUpcoming = (stats.upcoming || []).sort((a, b) => a.time - b.time);
             results = {
+                entityType: 'team',
                 today: sortedUpcoming.find(m => {
                     const matchDate = new Date(m.time * 1000).toISOString().split('T')[0];
                     const todayDate = new Date().toISOString().split('T')[0];
                     return matchDate === todayDate;
                 }) || null,
                 upcoming: sortedUpcoming,
-                results: (results.past || []).sort((a, b) => b.time - a.time)
+                results: (stats.past || []).sort((a, b) => b.time - a.time)
             };
+        } else {
+            // Try fetching as Championship/League
+            console.log(`[Debug] Trying as league for statId: ${statId}`);
+            const leagueStats = await xbet.fetchChampionshipDetailedStats(statId, lang).catch(() => null);
+            
+            if (leagueStats && (leagueStats.upcoming?.length > 0 || leagueStats.past?.length > 0)) {
+                results = {
+                    ...leagueStats,
+                    entityType: 'league'
+                };
+            }
+        }
+
+        if (!results) {
+            return res.status(404).json({ success: false, error: 'Entity not found or no matches available' });
         }
         
         res.status(200).json({
