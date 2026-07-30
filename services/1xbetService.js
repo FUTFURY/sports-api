@@ -101,44 +101,135 @@ async function scrapingGet(url, customHeaders = {}, sportId = DEFAULT_SPORT_ID) 
 
 // -- 1XBET MAIN API FETCHERS --
 
-export const fetchLiveMatches = async (sportId = DEFAULT_SPORT_ID, lang = 'en', tz = '3') => {
-    const cacheKey = `live_matches_${sportId}_${lang}_${tz}`;
+export const fetchLiveMatches = async (sportId = DEFAULT_SPORT_ID, lang = 'en', tz = '3', champId = null) => {
+    const cacheKey = `live_matches_${sportId}_${champId || 'all'}_${lang}_${tz}`;
     const cached = cache.get(cacheKey);
     if (cached) return cached;
 
     try {
-        const path = `/service-api/LiveFeed/Get1x2_VZip?sports=${sportId}&count=40&lng=${lang}&mode=4&country=158&getEmpty=true&virtualSports=true&noFilterBlockEvent=true&tf=${tz}`;
+        const path = champId
+            ? `/service-api/LiveFeed/Get1x2_VZip?champs=${champId}&count=50&lng=${lang}&mode=4&country=158&getEmpty=true&virtualSports=true&noFilterBlockEvent=true&tf=${tz}`
+            : `/service-api/LiveFeed/Get1x2_VZip?sports=${sportId}&count=40&lng=${lang}&mode=4&country=158&getEmpty=true&virtualSports=true&noFilterBlockEvent=true&tf=${tz}`;
         const data = await fetchWithRotation(path, '1xbet');
         const matches = data?.Value || [];
         const normalized = matches.map(mapMatch).filter(Boolean);
         cache.set(cacheKey, normalized, 60);
         return normalized;
     } catch (error) {
-        console.error(`Error fetching live matches for sport ${sportId}:`, error.message);
+        console.error(`Error fetching live matches for sport ${sportId} champ ${champId}:`, error.message);
         return [];
     }
 };
 
-export const fetchUpcomingMatches = async (sportId = DEFAULT_SPORT_ID, lang = 'en', tz = '3') => {
-    const cacheKey = `upcoming_matches_${sportId}_${lang}_${tz}`;
+export const fetchUpcomingMatches = async (sportId = DEFAULT_SPORT_ID, lang = 'en', tz = '3', champId = null) => {
+    const cacheKey = `upcoming_matches_${sportId}_${champId || 'all'}_${lang}_${tz}`;
     const cached = cache.get(cacheKey);
     if (cached) return cached;
 
     try {
-        const path = `/service-api/LineFeed/Get1x2_VZip?sports=${sportId}&count=40&lng=${lang}&mode=4&country=158&getEmpty=true&virtualSports=true&tf=${tz}`;
+        const path = champId
+            ? `/service-api/LineFeed/Get1x2_VZip?champs=${champId}&count=50&lng=${lang}&mode=4&country=158&getEmpty=true&virtualSports=true&tf=${tz}`
+            : `/service-api/LineFeed/Get1x2_VZip?sports=${sportId}&count=40&lng=${lang}&mode=4&country=158&getEmpty=true&virtualSports=true&noFilterBlockEvent=true&tf=${tz}`;
         const data = await fetchWithRotation(path, '1xbet');
         const matches = data?.Value || [];
         const normalized = matches.map(mapMatch).filter(Boolean);
         cache.set(cacheKey, normalized, 300);
         return normalized;
     } catch (error) {
-        console.error(`Error fetching upcoming matches for sport ${sportId}:`, error.message);
+        console.error(`Error fetching upcoming matches for sport ${sportId} champ ${champId}:`, error.message);
         return [];
     }
 };
 
-export const fetchResults = async (date, sportId = DEFAULT_SPORT_ID, lang = 'en', tz = '3') => {
-    const cacheKey = `results_${date}_${sportId}_${lang}_${tz}`;
+export const fetchLeagueResults = async (champId, days = 7, lang = 'en', tz = '3') => {
+    const cacheKey = `league_results_${champId}_${days}_${lang}_${tz}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return cached;
+
+    try {
+        const dates = [];
+        const today = new Date();
+        for (let i = 0; i < days; i++) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - i);
+            const yyyy = d.getUTCFullYear();
+            const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+            const dd = String(d.getUTCDate()).padStart(2, '0');
+            dates.push(`${yyyy}-${mm}-${dd}`);
+        }
+
+        const results = await Promise.all(
+            dates.map(async (dateStr) => {
+                const [year, month, day] = dateStr.split('-').map(Number);
+                const tsMidnight = Date.UTC(year, month - 1, day) / 1000;
+                const tsFrom = tsMidnight - 3 * 3600;
+                const tsTo = tsFrom + 86400;
+
+                const gamesPath = `/service-api/result/web/api/v3/games?champId=${champId}&dateFrom=${tsFrom}&dateTo=${tsTo}&lng=${lang}&ref=1`;
+                try {
+                    const gamesData = await fetchWithRotation(gamesPath, '1xbet');
+                    const items = gamesData?.items || [];
+                    return items.map(g => {
+                        let sets = {};
+                        let s1 = 0, s2 = 0;
+                        if (g.score) {
+                            const parts = g.score.split(' (');
+                            const mainScore = parts[0].split(':');
+                            s1 = parseInt(mainScore[0]) || 0;
+                            s2 = parseInt(mainScore[1]) || 0;
+                            if (parts.length > 1) {
+                                const setsStr = parts[1].replace(')', '');
+                                const setsArr = setsStr.split(',');
+                                setsArr.forEach((s, idx) => {
+                                    const sp = s.split(':');
+                                    sets[`S1`] = (sets[`S1`] || {});
+                                    sets[`S2`] = (sets[`S2`] || {});
+                                    sets[`S1`][idx] = parseInt(sp[0]) || 0;
+                                    sets[`S2`][idx] = parseInt(sp[1]) || 0;
+                                });
+                            }
+                        }
+                        return {
+                            id: g.id,
+                            title: `${g.opp1} vs ${g.opp2}`,
+                            tournamentId: parseInt(champId, 10),
+                            tournamentName: g.champName,
+                            player1: g.opp1,
+                            player1Id: g.opp1Ids?.[0],
+                            player1Image: g.opp1Images?.[0],
+                            player2: g.opp2,
+                            player2Id: g.opp2Ids?.[0],
+                            player2Image: g.opp2Images?.[0],
+                            startTime: g.dateStart,
+                            date: dateStr,
+                            score: {
+                                gamesPlayer1: s1,
+                                gamesPlayer2: s2,
+                                sets
+                            },
+                            subGame: g.subGame,
+                            matchInfos: g.matchInfos,
+                            isLive: false,
+                            isFinished: true
+                        };
+                    }).filter(Boolean);
+                } catch {
+                    return [];
+                }
+            })
+        );
+
+        const allMatches = results.flat();
+        cache.set(cacheKey, allMatches, 1800);
+        return allMatches;
+    } catch (error) {
+        console.error(`Error fetching league results for champ ${champId}:`, error.message);
+        return [];
+    }
+};
+
+export const fetchResults = async (date, sportId = DEFAULT_SPORT_ID, lang = 'en', tz = '3', champId = null) => {
+    const cacheKey = `results_${date}_${sportId}_${champId || 'all'}_${lang}_${tz}`;
     const cached = cache.get(cacheKey);
     if (cached) return cached;
 
@@ -147,6 +238,62 @@ export const fetchResults = async (date, sportId = DEFAULT_SPORT_ID, lang = 'en'
         const tsMidnight = Date.UTC(year, month - 1, day) / 1000;
         const tsFrom = tsMidnight - 3 * 3600;  // 21:00 UTC veille
         const tsTo   = tsFrom + 86400;          // 21:00 UTC jour cible
+
+        if (champId) {
+            const gamesPath = `/service-api/result/web/api/v3/games?champId=${champId}&dateFrom=${tsFrom}&dateTo=${tsTo}&lng=${lang}&ref=1`;
+            try {
+                const gamesData = await fetchWithRotation(gamesPath, '1xbet');
+                const items = gamesData?.items || [];
+                const matches = items.map(g => {
+                    let sets = {};
+                    let s1 = 0, s2 = 0;
+                    if (g.score) {
+                        const parts = g.score.split(' (');
+                        const mainScore = parts[0].split(':');
+                        s1 = parseInt(mainScore[0]) || 0;
+                        s2 = parseInt(mainScore[1]) || 0;
+                        if (parts.length > 1) {
+                            const setsStr = parts[1].replace(')', '');
+                            const setsArr = setsStr.split(',');
+                            setsArr.forEach((s, idx) => {
+                                const sp = s.split(':');
+                                sets[`S1`] = (sets[`S1`] || {});
+                                sets[`S2`] = (sets[`S2`] || {});
+                                sets[`S1`][idx] = parseInt(sp[0]) || 0;
+                                sets[`S2`][idx] = parseInt(sp[1]) || 0;
+                            });
+                        }
+                    }
+                    return {
+                        id: g.id,
+                        title: `${g.opp1} vs ${g.opp2}`,
+                        tournamentId: parseInt(champId, 10),
+                        tournamentName: g.champName,
+                        player1: g.opp1,
+                        player1Id: g.opp1Ids?.[0],
+                        player1Image: g.opp1Images?.[0],
+                        player2: g.opp2,
+                        player2Id: g.opp2Ids?.[0],
+                        player2Image: g.opp2Images?.[0],
+                        startTime: g.dateStart,
+                        date,
+                        score: {
+                            gamesPlayer1: s1,
+                            gamesPlayer2: s2,
+                            sets
+                        },
+                        subGame: g.subGame,
+                        matchInfos: g.matchInfos,
+                        isLive: false,
+                        isFinished: true
+                    };
+                }).filter(Boolean);
+                cache.set(cacheKey, matches, 1800);
+                return matches;
+            } catch {
+                return [];
+            }
+        }
 
         const champsPath = `/service-api/result/web/api/v2/champs?dateFrom=${tsFrom}&dateTo=${tsTo}&lng=${lang}&ref=1&sportIds=${sportId}`;
         let champsData;
