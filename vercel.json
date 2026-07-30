@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/match/stats",
+      "destination": "/api/match/stats"
+    },
+    {
+      "source": "/api/entity/matches",
+      "destination": "/api/entity/matches"
+    },
+    {
+      "source": "/api/tournaments",
+      "destination": "/api/tournament/all"
+    }
+  ]
+}

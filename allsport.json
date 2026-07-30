@@ -1,0 +1,1007 @@
+[
+    {
+        "sportId": 1,
+        "name": "Football",
+        "command": "Mi-temps",
+        "shortName": "Football",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 2,
+        "name": "Hockey sur glace",
+        "command": "Période",
+        "shortName": "Hockey sur glace",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 3,
+        "name": "Basket-ball",
+        "command": "Quart-temps",
+        "subCommand": "Mi-Temps",
+        "shortName": "Basket-ball",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 4,
+        "name": "Tennis",
+        "command": "Set",
+        "subCommand": "Jeu",
+        "shortName": "Tennis",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 5,
+        "name": "Baseball",
+        "command": "Manche",
+        "subCommand": "Les 5 premières manches",
+        "shortName": "Baseball",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 6,
+        "name": "Volleyball",
+        "command": "Set",
+        "shortName": "Volleyball",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 7,
+        "name": "Rugby",
+        "command": "Mi-temps",
+        "shortName": "Rugby",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 8,
+        "name": "Handball",
+        "command": "Mi-temps",
+        "shortName": "Handball",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 9,
+        "name": "Boxe",
+        "command": "Round",
+        "shortName": "Boxe",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 10,
+        "name": "Tennis de table",
+        "command": "Set",
+        "shortName": "Tennis de table",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 11,
+        "name": "Echecs",
+        "command": "match",
+        "shortName": "Echecs",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 12,
+        "name": "Billard",
+        "command": "manche",
+        "shortName": "Billard",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 13,
+        "name": "Football Américain",
+        "command": "Quart-temps",
+        "subCommand": "Mi-Temps",
+        "shortName": "Football Américain",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 14,
+        "name": "Futsal",
+        "command": "Mi-temps",
+        "shortName": "Futsal",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 15,
+        "name": "Bandy",
+        "command": "Mi-temps",
+        "shortName": "Bandy",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 16,
+        "name": "Badminton",
+        "command": "Set",
+        "shortName": "Badminton",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 17,
+        "name": "Water Polo",
+        "command": "Quart-temps",
+        "subCommand": "Mi-Temps",
+        "shortName": "Water Polo",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 18,
+        "name": "Course Automobile",
+        "shortName": "Course Automobile",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 19,
+        "name": "Biathlon",
+        "command": "pas de tir",
+        "shortName": "Biathlon",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 21,
+        "name": "Jeu de Fléchettes",
+        "command": "manche",
+        "subCommand": "Volée",
+        "shortName": "Jeu de Fléchettes",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 22,
+        "name": "Ski Alpin",
+        "command": "essai",
+        "shortName": "Ski Alpin",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 23,
+        "name": "Le Saut à Ski",
+        "command": "essai",
+        "shortName": "Le Saut à Ski",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 24,
+        "name": "Ski",
+        "command": "tour",
+        "shortName": "Ski",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 25,
+        "name": "Beach Soccer",
+        "command": "mi-temps",
+        "shortName": "Beach Soccer",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 26,
+        "name": "Formule 1",
+        "command": "session",
+        "shortName": "Formule 1",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 27,
+        "name": "Hockey sur Gazon",
+        "command": "Quart-temps",
+        "subCommand": "Mi-Temps",
+        "shortName": "Hockey sur Gazon",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 28,
+        "name": "Football Australien",
+        "command": "quart-temps",
+        "subCommand": "Mi-Temps",
+        "shortName": "Football Australien",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 29,
+        "name": "Beach Volleyball",
+        "command": "Set",
+        "shortName": "Beach Volleyball",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 31,
+        "name": "Moto",
+        "command": "course",
+        "shortName": "Moto",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 33,
+        "name": "Hockey sur Roller",
+        "command": "Période",
+        "subCommand": "Période",
+        "shortName": "Hockey sur Roller",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 34,
+        "name": "Paddle",
+        "command": "set",
+        "subCommand": "Jeu",
+        "shortName": "Paddle",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 35,
+        "name": "Handball sur Plage",
+        "command": "set",
+        "shortName": "Handball sur Plage",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 36,
+        "name": "Cyclisme",
+        "command": "tour",
+        "shortName": "Cyclisme",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 37,
+        "name": "Natation",
+        "shortName": "Natation",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 39,
+        "name": "Squash",
+        "command": "jeu",
+        "shortName": "Squash",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 41,
+        "name": "Golf",
+        "command": "jour",
+        "shortName": "Golf",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 43,
+        "name": "Hockey en Salle",
+        "command": "Quart-temps",
+        "subCommand": "Mi-Temps",
+        "shortName": "Hockey en Salle",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 44,
+        "name": "Courses hippiques",
+        "command": "course",
+        "shortName": "Courses hippiques",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 46,
+        "name": "Curling",
+        "command": "manche",
+        "shortName": "Curling",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 47,
+        "name": "Hockey-balle",
+        "command": "Période",
+        "shortName": "Hockey-balle",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 48,
+        "name": "Lacrosse",
+        "command": "quart-temps",
+        "shortName": "Lacrosse",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 49,
+        "name": "Netball",
+        "command": "quart-temps",
+        "subCommand": "Période",
+        "shortName": "Netball",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 51,
+        "name": "Gymnastique",
+        "command": "appareil",
+        "shortName": "Gymnastique",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 53,
+        "name": "Lutte",
+        "command": "période",
+        "shortName": "Lutte",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 54,
+        "name": "Tir à l'arc",
+        "shortName": "Tir à l'arc",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 55,
+        "name": "Judo",
+        "command": "Combat",
+        "shortName": "Judo",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 56,
+        "name": "Sports de Combat",
+        "command": "round",
+        "shortName": "Sports de Combat",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 57,
+        "name": "Athlétisme",
+        "command": "équipement",
+        "shortName": "Athlétisme",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 58,
+        "name": "Course de Canoë",
+        "command": "éliminatoire",
+        "shortName": "Course de Canoë",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 59,
+        "name": "Plongeon",
+        "command": "essai",
+        "shortName": "Plongeon",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 60,
+        "name": "Escrime",
+        "shortName": "Escrime",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 61,
+        "name": "Le Pentathlon Moderne",
+        "shortName": "Le Pentathlon Moderne",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 62,
+        "name": "Aviron",
+        "command": "éliminatoire",
+        "shortName": "Aviron",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 63,
+        "name": "Nautisme à la Voile",
+        "command": "éliminatoire",
+        "shortName": "Nautisme à la Voile",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 64,
+        "name": "Tir Sportif",
+        "command": "manche",
+        "shortName": "Tir Sportif",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 65,
+        "name": "Triathlon",
+        "shortName": "Triathlon",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 66,
+        "name": "Cricket",
+        "command": "manche",
+        "shortName": "Cricket",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 67,
+        "name": "Floorball",
+        "command": "période",
+        "shortName": "Floorball",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 71,
+        "name": "Patinage Artistique",
+        "command": "tentative",
+        "shortName": "Patinage Artistique",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 72,
+        "name": "Le Patinage de Vitesse",
+        "shortName": "Le Patinage de Vitesse",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 73,
+        "name": "Skeleton",
+        "shortName": "Skeleton",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 74,
+        "name": "Ski Acrobatique",
+        "shortName": "Ski Acrobatique",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 75,
+        "name": "Bobsleigh",
+        "shortName": "Bobsleigh",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 76,
+        "name": "Combiné Nordique",
+        "shortName": "Combiné Nordique",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 77,
+        "name": "Luge",
+        "shortName": "Luge",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 78,
+        "name": "Patinage de vitesse sur courte piste",
+        "shortName": "Patinage de vitesse sur courte piste",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 79,
+        "name": "MMA",
+        "shortName": "MMA",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 80,
+        "name": "Football Gaélique",
+        "command": "mi-temps",
+        "shortName": "Football Gaélique",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 81,
+        "name": "Sumo",
+        "shortName": "Sumo",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 83,
+        "name": "Softball",
+        "command": "manche",
+        "subCommand": "Les 5 premières manches",
+        "shortName": "Softball",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 84,
+        "name": "Snowboard",
+        "shortName": "Snowboard",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 102,
+        "name": "Speedway",
+        "command": "course",
+        "shortName": "Speedway",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 105,
+        "name": "Streetball",
+        "command": "Partie",
+        "shortName": "Streetball",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 111,
+        "name": "Taekwondo",
+        "shortName": "Taekwondo",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 112,
+        "name": "Haltérophilie",
+        "shortName": "Haltérophilie",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 113,
+        "name": "Bowling",
+        "shortName": "Bowling",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 118,
+        "name": "Sepak takraw",
+        "command": "set",
+        "shortName": "Sepak takraw",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 126,
+        "name": "Hurling",
+        "command": "mi-temps",
+        "shortName": "Hurling",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 138,
+        "name": "Surf",
+        "shortName": "Surf",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 140,
+        "name": "Crossfit",
+        "shortName": "Crossfit",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 147,
+        "name": "Culturisme",
+        "shortName": "Culturisme",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 149,
+        "name": "Pesäpallo",
+        "shortName": "Pesäpallo",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 155,
+        "name": "Bras de fer",
+        "shortName": "Bras de fer",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 159,
+        "name": "Volley-ball sur neige",
+        "command": "Set",
+        "shortName": "Volley-ball sur neige",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 161,
+        "name": "Skateboard",
+        "shortName": "Skateboard",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 173,
+        "name": "Korfbal",
+        "command": "Quart-temps",
+        "subCommand": "Mi-Temps",
+        "shortName": "Korfbal",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 174,
+        "name": "Ballon-balai",
+        "command": "Période",
+        "shortName": "Ballon-balai",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 175,
+        "name": "Footvolley",
+        "command": "Set",
+        "shortName": "Footvolley",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 180,
+        "name": "Kabaddi",
+        "command": "mi-temps",
+        "shortName": "Kabaddi",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 182,
+        "name": "Boxe thaï",
+        "command": "Round",
+        "shortName": "Boxe thaï",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 189,
+        "name": "UFC",
+        "command": "round",
+        "shortName": "UFC",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 203,
+        "name": "Fistball",
+        "command": "Période",
+        "shortName": "Fistball",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 206,
+        "name": "Ringuette",
+        "command": "période",
+        "shortName": "Ringuette",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 223,
+        "name": "Spikeball",
+        "command": "set",
+        "shortName": "Spikeball",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 230,
+        "name": "Tennis-ballon",
+        "command": "set",
+        "shortName": "Tennis-ballon",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 239,
+        "name": "Teqball",
+        "command": "set",
+        "shortName": "Teqball",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 242,
+        "name": "Keirin",
+        "shortName": "Keirin",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 256,
+        "name": "Air hockey",
+        "command": "Set",
+        "shortName": "Air hockey",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 262,
+        "name": "Headis",
+        "command": "set",
+        "shortName": "Headis",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 270,
+        "name": "Escalade sportive",
+        "shortName": "Escalade sportive",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 271,
+        "name": "Karaté",
+        "shortName": "Karaté",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 275,
+        "name": "Boxe khmère",
+        "command": "round",
+        "shortName": "Boxe khmère",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 278,
+        "name": "Boxe à mains nues",
+        "shortName": "Boxe à mains nues",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 282,
+        "name": "Padel",
+        "command": "set",
+        "shortName": "Padel",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 283,
+        "name": "Pickleball",
+        "command": "jeu",
+        "shortName": "Pickleball",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 285,
+        "name": "Dodgeball",
+        "command": "mi-temps",
+        "shortName": "Dodgeball",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 286,
+        "name": "Pelote basque",
+        "shortName": "Pelote basque",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 288,
+        "name": "Ultimate",
+        "command": "mi-temps",
+        "shortName": "Ultimate",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 289,
+        "name": "Carrom",
+        "shortName": "Carrom",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 290,
+        "name": "Kho Kho",
+        "shortName": "Kho Kho",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 294,
+        "name": "Polo",
+        "shortName": "Polo",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 295,
+        "name": "Cricket en salle",
+        "shortName": "Cricket en salle",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": true
+    },
+    {
+        "sportId": 316,
+        "name": "Basket 3x3",
+        "command": "Période",
+        "shortName": "Basket 3x3",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    },
+    {
+        "sportId": 324,
+        "name": "Ski mountaineering",
+        "shortName": "Ski mountaineering",
+        "subSports": [],
+        "isCyber": false,
+        "isTeamSport": false
+    }
+]

@@ -1,11 +1,43 @@
-import { fetchMatchDetails, fetchHeadToHead, fetchMatchDetailed, fetchSports } from '../../../services/1xbetService.js';
+import { fetchMatchDetails, fetchHeadToHead, fetchMatchDetailed, fetchSports, fetchGameStatistics } from '../../../services/1xbetService.js';
 import { withCors } from '../../../utils/cors.js';
 import { VERSION } from '../../../utils/version.js';
 import { mapStats } from '../../../mappers/1xbet.js';
 
 const handler = async (req, res) => {
     try {
-        const { id, isLive, sportId, lang, lng, tz } = req.query;
+        const { id, isLive, sportId, lang, lng, tz, sgi, sport } = req.query;
+
+        // Handle /api/match/stats routing (when id is 'stats' or sgi is present)
+        if (id === 'stats' || sgi) {
+            if (!sgi) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Le paramètre 'sgi' (EventsStat match ID) est requis. ex: ?sgi=6a3518ab5e99bd05c6ea2e2"
+                });
+            }
+            if (!sport) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Le paramètre 'sport' (slug en minuscule) est requis. ex: ?sport=football"
+                });
+            }
+
+            const stats = await fetchGameStatistics(sgi, sport.toLowerCase());
+
+            if (!stats) {
+                return res.status(404).json({
+                    success: false,
+                    message: `Aucune statistique trouvée sur EventsStat pour le match SGI: ${sgi} et le sport: ${sport}`
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                sgi,
+                sport,
+                data: stats
+            });
+        }
 
         if (!id) {
             return res.status(400).json({ success: false, message: 'Match ID is required in the query or path.' });
@@ -27,8 +59,6 @@ const handler = async (req, res) => {
 
         let finalMatchDetails = matchDetails;
 
-        // Fallback: If 1xBet fails (common for historical matches using string IDs), 
-        // try to reconstruct the match info from the h2h/form data metadata or detailedInfo.
         if (!finalMatchDetails) {
             if (detailedInfo) {
                 const game = detailedInfo.G || {};
@@ -48,7 +78,6 @@ const handler = async (req, res) => {
                     }
                 };
             } else if (h2h) {
-                // Find a reference to the current game in the forms or h2h list
                 const allMatches = [...(h2h.player1Form || []), ...(h2h.player2Form || []), ...(h2h.headToHead || [])];
                 const found = allMatches.find(m => m.id === id);
 
@@ -76,7 +105,6 @@ const handler = async (req, res) => {
             }
         }
 
-        // Enrich with stats from detailedInfo if not already present
         if (finalMatchDetails && !finalMatchDetails.stats && detailedInfo) {
             const mappedStats = mapStats(detailedInfo);
             if (mappedStats) {
@@ -85,7 +113,6 @@ const handler = async (req, res) => {
         }
 
         if (!finalMatchDetails) {
-            // Last resort: minimal info
             finalMatchDetails = { id, name: "Match", isLive: false };
         }
 

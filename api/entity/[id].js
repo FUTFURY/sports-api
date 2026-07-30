@@ -1,7 +1,7 @@
 import { withCors } from '../../utils/cors.js';
 import { VERSION } from '../../utils/version.js';
 import { fetchWithRotation } from '../../services/robustSearchService.js';
-import { fetchTeamContext } from '../../services/1xbetService.js';
+import xbet, { fetchTeamContext } from '../../services/1xbetService.js';
 import { gotScraping } from 'got-scraping';
 
 const EVENTSSTAT_MIRRORS = [
@@ -14,7 +14,6 @@ async function fetchEntityStat(path, lang = 'en') {
     for (const mirror of EVENTSSTAT_MIRRORS) {
         for (const p of partners) {
             try {
-                // Force language in path if necessary (SiteService endpoints often use ln=)
                 let finalPath = path.replace(/partner=[^&]+/, `partner=${p}`);
                 if (lang) {
                     finalPath = finalPath.replace(/ln=[^&]+/, `ln=${lang}`).replace(/lng=[^&]+/, `lng=${lang}`);
@@ -28,7 +27,7 @@ async function fetchEntityStat(path, lang = 'en') {
                         'Accept': 'application/json'
                     },
                     responseType: 'text',
-                    timeout: { request: 4000 } // Shorter timeout to try other mirrors/partners quickly
+                    timeout: { request: 4000 }
                 });
 
                 if (res.body && (res.body.trim().startsWith('{') || res.body.trim().startsWith('['))) {
@@ -44,14 +43,83 @@ async function fetchEntityStat(path, lang = 'en') {
 }
 
 const handler = async (req, res) => {
-    const { id, type, lang, lng, tz } = req.query;
+    const { id, type, lang, lng, tz, statId } = req.query;
+
+    // Handle /api/entity/matches routing (when id is 'matches' or statId is present)
+    if (id === 'matches' || statId) {
+        const targetStatId = statId || req.query.id;
+        const targetLang = lang || lng || 'fr';
+
+        if (!targetStatId || targetStatId === 'matches') {
+            return res.status(400).json({ success: false, error: 'statId (Hex ID) is required' });
+        }
+
+        try {
+            let results = null;
+
+            // Try fetching as Team first
+            const teamStats = await xbet.fetchTeamDetailedStats(targetStatId, targetLang).catch(() => null);
+            
+            if (teamStats && (teamStats.upcoming?.length > 0 || teamStats.past?.length > 0)) {
+                const sortedUpcoming = (teamStats.upcoming || []).sort((a, b) => a.time - b.time);
+                results = {
+                    entityType: 'team',
+                    name: teamStats.name || null,
+                    today: sortedUpcoming.find(m => {
+                        const matchDate = new Date(m.time * 1000).toISOString().split('T')[0];
+                        const todayDate = new Date().toISOString().split('T')[0];
+                        return matchDate === todayDate;
+                    }) || null,
+                    upcoming: sortedUpcoming,
+                    results: (teamStats.past || []).sort((a, b) => b.time - a.time)
+                };
+            } else {
+                // Try fetching as Championship/League
+                const leagueStats = await xbet.fetchChampionshipDetailedStats(targetStatId, targetLang).catch(() => null);
+                
+                if (leagueStats && (leagueStats.upcoming?.length > 0 || leagueStats.past?.length > 0)) {
+                    results = {
+                        ...leagueStats,
+                        entityType: 'league'
+                    };
+                } else {
+                    // Try fetching as Player/Athlete
+                    const playerStats = await xbet.fetchPlayerDetailedStats(targetStatId, targetLang).catch(() => null);
+                    
+                    if (playerStats && (playerStats.upcoming?.length > 0 || playerStats.past?.length > 0)) {
+                        results = {
+                            ...playerStats,
+                            entityType: 'athlete'
+                        };
+                    }
+                }
+            }
+
+            if (!results) {
+                return res.status(404).json({ success: false, error: 'Entity not found or no matches available for this ID' });
+            }
+            
+            return res.status(200).json({
+                success: true,
+                version: VERSION,
+                data: results
+            });
+        } catch (error) {
+            console.error(`API Entity Matches Error:`, error);
+            return res.status(500).json({
+                success: false,
+                error: 'Internal server error',
+                message: error.message
+            });
+        }
+    }
 
     if (!id) {
         return res.status(400).json({ error: 'Entity ID required' });
     }
 
     const entityType = type || 'team';
-    const finalLang = lang || lng || 'fr'; // Défaut sur Français
+    const finalLang = lang || lng || 'fr';
     const finalTz = tz || '1';
 
     try {
@@ -98,7 +166,6 @@ const handler = async (req, res) => {
                     tournament: f.L
                 })) : [];
 
-                // Extract Roster (TR)
                 const roster = Array.isArray(raw.TR) ? raw.TR.map(member => ({
                     id: member.P?.I,
                     name: member.P?.N || member.P?.S,
@@ -132,8 +199,6 @@ const handler = async (req, res) => {
                 };
             }
 
-            // FALLBACK: If TeamDetailed failed or returned nothing, 
-            // try to find context from active matches (leagues, name, image)
             if (!result || result.name === 'Unknown') {
                 const sportIdParam = req.query.sportId || '1';
                 const context = await fetchTeamContext(id, sportIdParam, finalLang);
@@ -159,7 +224,6 @@ const handler = async (req, res) => {
             const raw = await fetchEntityStat(path, finalLang);
 
             if (raw) {
-                // For non-tennis athletes, info is often in raw.P, for tennis it might be root
                 const player = raw.P || raw || {};
                 const country = player.C || raw.C || {};
 
@@ -177,7 +241,6 @@ const handler = async (req, res) => {
                     apps: c.M
                 })) : [];
 
-                // Use G (Games) if available for recent results, or R
                 const rawRecent = Array.isArray(raw.R) ? raw.R : (Array.isArray(raw.G) ? raw.G : []);
 
                 result = {
@@ -210,24 +273,20 @@ const handler = async (req, res) => {
                 };
             }
         } else if (entityType === 'league') {
-            const sportIdParam = req.query.sportId || '1'; // Default to football si non spécifié
+            const sportIdParam = req.query.sportId || '1';
             const path = `/en/services-api/SiteService/TournSeasonInfo?tournamentId=${id}&sId=${sportIdParam}&ln=${finalLang}&partner=1&geo=158`;
 
-            console.log(`[entity] Fetching league detail for ID ${id} with sportId ${sportIdParam} (lang: ${finalLang})`);
             const raw = await fetchEntityStat(path, finalLang);
 
             if (raw) {
-                console.log(`[entity] League data received for ${id}`);
                 const tourn = raw.T || {};
-                // Le pays peut être à la racine ou niché dans le premier objet de S (Stages)
                 const country = raw.C || (raw.S && raw.S[0] && raw.S[0].C) || {};
 
-                // 1. CLASSEMENTS (Standings)
                 let standingsGroups = [];
                 if (raw.ST && raw.ST.length > 0 && raw.ST[0].TS) {
                     standingsGroups = raw.ST[0].TS;
                 } else if (raw.ST) {
-                    standingsGroups = raw.ST; // Fallback
+                    standingsGroups = raw.ST;
                 }
 
                 const standings = standingsGroups.map(group => ({
@@ -246,23 +305,18 @@ const handler = async (req, res) => {
                     }))
                 }));
 
-                // 2. IMAGE DE LA LIGUE (Priorité au logo spécifique, puis au drapeau du pays)
                 let leagueImage = null;
                 if (tourn.IM) {
                     leagueImage = tourn.IM.startsWith('http') ? tourn.IM : `https://sa.1xbet.com${tourn.IM}`;
                 } else if (country.IM) {
                     leagueImage = `https://sa.1xbet.com${country.IM}`;
                 } else if (tourn.M) {
-                    // Les IDs numériques (ex: 60230225.png) sont souvent des 404 en logo_ligas
-                    // On tente quand même mais après les drapeaux
                     leagueImage = `https://sa.1xbet.com/sfiles/logo_ligas/${tourn.M}`;
                 }
 
-                // 3. SAISONS (Actuelle et Archives)
                 const currentSeason = raw.G ? { id: raw.G.I, year: raw.G.T } : null;
                 const availableSeasons = Array.isArray(raw.N) ? raw.N.map(s => ({ id: s.I, year: s.T })) : [];
 
-                // 4. MATCHS RÉCENTS (avec logos et IDs)
                 const rawRecent = raw.LG || raw.R || raw.LM || [];
                 const recentResults = rawRecent.map(r => ({
                     id: r.I,
@@ -279,7 +333,6 @@ const handler = async (req, res) => {
                     status: r.St || r.P
                 }));
 
-                // 5. MATCHS À VENIR (avec logos et IDs)
                 const rawUpcoming = raw.FG || raw.F || raw.NM || [];
                 const upcomingMatches = rawUpcoming.map(f => ({
                     id: f.I,
@@ -293,18 +346,17 @@ const handler = async (req, res) => {
                     tournament: f.L || tourn.T
                 }));
 
-                // 6. ARBRE DU TOURNOI / PLAYOFFS (Clé S)
                 const stages = [];
                 if (Array.isArray(raw.S)) {
                     raw.S.forEach(stage => {
                         const categories = stage.A?.C || [];
                         stages.push({
                             id: stage.I,
-                            name: stage.N || 'Main Stage', // ex: "USA. MLS"
+                            name: stage.N || 'Main Stage',
                             categories: categories.map(cat => ({
-                                name: cat.T || 'General', // ex: "Western Conference"
+                                name: cat.T || 'General',
                                 matchups: (cat.R || []).map(round => ({
-                                    roundName: round.N, // ex: "Play-off: Round of 16"
+                                    roundName: round.N,
                                     advancingTeamId: round.T?.I || null,
                                     advancingTeamName: round.T?.T || null,
                                     games: (round.G || []).map(game => ({
@@ -327,7 +379,6 @@ const handler = async (req, res) => {
                     });
                 }
 
-                // CONSTRUCTION DU RÉSULTAT FINAL
                 result = {
                     id: tourn.I || id,
                     name: tourn.T || tourn.N || 'Unknown League',

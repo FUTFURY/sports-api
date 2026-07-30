@@ -1,0 +1,987 @@
+{
+  "Football": {
+    "upcoming": {
+      "status": "OK",
+      "has_sgi": true,
+      "has_odds": true,
+      "count": 50,
+      "sample_keys": [
+        "B",
+        "GVE",
+        "HL",
+        "RLI",
+        "IG",
+        "WP",
+        "I",
+        "N",
+        "CI",
+        "E",
+        "AE",
+        "EC",
+        "TG",
+        "V",
+        "VE"
+      ]
+    },
+    "live": {
+      "status": "OK",
+      "score_format": {
+        "has_periods": true,
+        "has_point_score": true,
+        "sample_score": {
+          "FS": {
+            "S1": 1,
+            "S2": 2
+          },
+          "PS": [
+            {
+              "Key": 1,
+              "Value": {
+                "S1": 1,
+                "S2": 2,
+                "NF": "1st half"
+              }
+            },
+            {
+              "Key": 2,
+              "Value": {
+                "NF": "2nd half"
+              }
+            }
+          ],
+          "CP": 2,
+          "CPS": "2nd half",
+          "HC": 1,
+          "TS": 3438,
+          "I": "",
+          "ST": [
+            {
+              "Key": 0,
+              "Value": [
+                {
+                  "ID": 45,
+                  "S1": "69",
+                  "S2": "94",
+                  "N": "Attacks"
+                },
+                {
+                  "ID": 58,
+                  "S1": "33",
+                  "S2": "51",
+                  "N": "Dangerous attacks"
+                },
+                {
+                  "ID": 29,
+                  "S1": "36",
+                  "S2": "64",
+                  "N": "Possession %"
+                },
+                {
+                  "ID": 59,
+                  "S1": "3",
+                  "S2": "5",
+                  "N": "Shots on target"
+                },
+                {
+                  "ID": 60,
+                  "S1": "3",
+                  "S2": "6",
+                  "N": "Shots off target"
+                },
+                {
+                  "ID": 26,
+                  "S1": "2",
+                  "S2": "1",
+                  "N": "Yellow cards"
+                },
+                {
+                  "ID": 70,
+                  "S1": "3",
+                  "S2": "1",
+                  "N": "Corner"
+                },
+                {
+                  "ID": 71,
+                  "S1": "0",
+                  "S2": "0",
+                  "N": "Red card"
+                },
+                {
+                  "ID": 72,
+                  "S1": "0",
+                  "S2": "1",
+                  "N": "Penalty"
+                },
+                {
+                  "ID": 92,
+                  "S1": "0",
+                  "S2": "0",
+                  "N": "Substitutions"
+                }
+              ]
+            }
+          ],
+          "SLS": "57 minutes"
+        }
+      },
+      "count": 50
+    },
+    "past": {
+      "status": "OK",
+      "has_stats": true,
+      "opponent_format": "string",
+      "championships_count": 131,
+      "sample_score": "1:0 (0:0,0:0,0:0,1:0)",
+      "sample_keys": [
+        "id",
+        "sportId",
+        "champId",
+        "champName",
+        "opp1",
+        "opp2",
+        "opp1Images",
+        "opp2Images",
+        "opp1Ids",
+        "opp2Ids",
+        "score",
+        "dopInfo",
+        "hasSubGame",
+        "dateStart",
+        "countSubGame",
+        "subGame",
+        "matchInfos",
+        "gameTypeName",
+        "gameVidName",
+        "stadiumId",
+        "champCountry"
+      ]
+    }
+  },
+  "Basketball": {
+    "upcoming": {
+      "status": "OK",
+      "has_sgi": true,
+      "has_odds": true,
+      "count": 50,
+      "sample_keys": [
+        "B",
+        "HL",
+        "IG",
+        "WP",
+        "I",
+        "N",
+        "CI",
+        "T",
+        "E",
+        "AE",
+        "EC",
+        "TG",
+        "V",
+        "VE",
+        "PN"
+      ]
+    },
+    "live": {
+      "status": "OK",
+      "score_format": {
+        "has_periods": true,
+        "has_point_score": true,
+        "sample_score": {
+          "FS": {
+            "S1": 42,
+            "S2": 17
+          },
+          "PS": [
+            {
+              "Key": 1,
+              "Value": {
+                "S1": 19,
+                "S2": 10,
+                "NF": "1st quarter"
+              }
+            },
+            {
+              "Key": 2,
+              "Value": {
+                "S1": 23,
+                "S2": 7,
+                "NF": "2nd quarter"
+              }
+            }
+          ],
+          "CP": 2,
+          "CPS": "2nd quarter",
+          "HC": 1,
+          "TS": 1098,
+          "TR": -1,
+          "I": "",
+          "ST": [
+            {
+              "Key": 0,
+              "Value": [
+                {
+                  "ID": 53,
+                  "S1": "7",
+                  "S2": "12",
+                  "N": "Fouls"
+                },
+                {
+                  "ID": 52,
+                  "S1": "5",
+                  "S2": "3",
+                  "N": "Timeouts remaining"
+                },
+                {
+                  "ID": 49,
+                  "S1": "7",
+                  "S2": "6",
+                  "N": "2-pointers"
+                },
+                {
+                  "ID": 48,
+                  "S1": "6",
+                  "S2": "1",
+                  "N": "3-pointers"
+                },
+                {
+                  "ID": 50,
+                  "S1": "10",
+                  "S2": "2",
+                  "N": "Free throws"
+                },
+                {
+                  "ID": 51,
+                  "S1": "52",
+                  "S2": "40",
+                  "N": "Free throws scored %"
+                }
+              ]
+            }
+          ],
+          "SLS": "18 minutes"
+        }
+      },
+      "count": 16
+    },
+    "past": {
+      "status": "OK",
+      "has_stats": true,
+      "opponent_format": "string",
+      "championships_count": 44,
+      "sample_score": "77:66 (24:15,13:16,19:13,21:22)",
+      "sample_keys": [
+        "id",
+        "sportId",
+        "champId",
+        "champName",
+        "opp1",
+        "opp2",
+        "opp1Images",
+        "opp2Images",
+        "opp1Ids",
+        "opp2Ids",
+        "score",
+        "dopInfo",
+        "hasSubGame",
+        "dateStart",
+        "countSubGame",
+        "subGame",
+        "matchInfos",
+        "gameTypeName",
+        "gameVidName",
+        "stadiumId",
+        "champCountry"
+      ]
+    }
+  },
+  "Tennis": {
+    "upcoming": {
+      "status": "OK",
+      "has_sgi": true,
+      "has_odds": true,
+      "count": 50,
+      "sample_keys": [
+        "B",
+        "GVE",
+        "RLI",
+        "IG",
+        "WP",
+        "I",
+        "N",
+        "CI",
+        "E",
+        "AE",
+        "EC",
+        "TG",
+        "V",
+        "VE",
+        "PN"
+      ]
+    },
+    "live": {
+      "status": "OK",
+      "score_format": {
+        "has_periods": true,
+        "has_point_score": true,
+        "sample_score": {
+          "FS": {
+            "S2": 1
+          },
+          "PS": [
+            {
+              "Key": 1,
+              "Value": {
+                "S1": 3,
+                "S2": 6,
+                "NF": "1st set"
+              }
+            },
+            {
+              "Key": 2,
+              "Value": {
+                "S1": 5,
+                "S2": 5,
+                "NF": "2nd set"
+              }
+            }
+          ],
+          "CP": 2,
+          "CPS": "2nd set",
+          "HC": 1,
+          "P": 1,
+          "TD": -1,
+          "TR": -1,
+          "I": "",
+          "SS": {
+            "S1": "0",
+            "S2": "30"
+          },
+          "ST": [
+            {
+              "Key": 0,
+              "Value": [
+                {
+                  "ID": 1,
+                  "S1": "1",
+                  "S2": "0",
+                  "N": "Aces"
+                },
+                {
+                  "ID": 2,
+                  "S1": "50",
+                  "S2": "54",
+                  "N": "Win % 1st Serve"
+                },
+                {
+                  "ID": 3,
+                  "S1": "80",
+                  "S2": "62",
+                  "N": "Break point %"
+                },
+                {
+                  "ID": 4,
+                  "S1": "2",
+                  "S2": "2",
+                  "N": "Double faults"
+                },
+                {
+                  "ID": 7,
+                  "S1": "41",
+                  "S2": "53",
+                  "N": "Win % 2nd Serve"
+                },
+                {
+                  "ID": 8,
+                  "S1": "36",
+                  "S2": "70",
+                  "N": "1st Serve %"
+                },
+                {
+                  "ID": 30,
+                  "S1": "27",
+                  "S2": "27",
+                  "N": "Points on own serve"
+                },
+                {
+                  "ID": 98,
+                  "S1": "4",
+                  "S2": "5",
+                  "N": "Breaks"
+                }
+              ]
+            }
+          ],
+          "SLS": "Event in progress"
+        }
+      },
+      "count": 50
+    },
+    "past": {
+      "status": "OK",
+      "has_stats": false,
+      "opponent_format": "string",
+      "championships_count": 111,
+      "sample_score": "0:6 (0:2,0:2,0:2) (8:12,10:13,2:12)",
+      "sample_keys": [
+        "id",
+        "sportId",
+        "champId",
+        "champName",
+        "opp1",
+        "opp2",
+        "opp1Images",
+        "opp2Images",
+        "opp1Ids",
+        "opp2Ids",
+        "score",
+        "dopInfo",
+        "dateStart",
+        "matchInfos",
+        "gameTypeName",
+        "gameVidName",
+        "stadiumId",
+        "champCountry"
+      ]
+    }
+  },
+  "Table Tennis": {
+    "upcoming": {
+      "status": "OK",
+      "has_sgi": false,
+      "has_odds": true,
+      "count": 50,
+      "sample_keys": [
+        "B",
+        "I",
+        "N",
+        "CI",
+        "E",
+        "AE",
+        "EC",
+        "TG",
+        "V",
+        "VE",
+        "PN",
+        "TN",
+        "SSI",
+        "S",
+        "HS"
+      ]
+    },
+    "live": {
+      "status": "OK",
+      "score_format": {
+        "has_periods": true,
+        "has_point_score": true,
+        "sample_score": {
+          "FS": {
+            "S2": 1
+          },
+          "PS": [
+            {
+              "Key": 1,
+              "Value": {
+                "S1": 3,
+                "S2": 11,
+                "NF": "1st set"
+              }
+            },
+            {
+              "Key": 2,
+              "Value": {
+                "S1": 2,
+                "S2": 6,
+                "NF": "2 Set"
+              }
+            }
+          ],
+          "CP": 2,
+          "CPS": "2 Set",
+          "P": 1,
+          "TR": -1,
+          "I": "",
+          "SLS": "Event in progress"
+        }
+      },
+      "count": 45
+    },
+    "past": {
+      "status": "OK",
+      "has_stats": false,
+      "opponent_format": "string",
+      "championships_count": 21,
+      "sample_score": "1:4 (12:10,9:11,4:11,10:12,10:12)",
+      "sample_keys": [
+        "id",
+        "sportId",
+        "champId",
+        "champName",
+        "opp1",
+        "opp2",
+        "opp1Images",
+        "opp2Images",
+        "opp1Ids",
+        "opp2Ids",
+        "score",
+        "dopInfo",
+        "videos",
+        "dateStart",
+        "matchInfos",
+        "gameTypeName",
+        "gameVidName",
+        "isOurRegional",
+        "champCountry"
+      ]
+    }
+  },
+  "Formula 1": {
+    "upcoming": {
+      "status": "OK",
+      "has_sgi": true,
+      "has_odds": true,
+      "count": 2,
+      "sample_keys": [
+        "B",
+        "RLI",
+        "I",
+        "N",
+        "CI",
+        "T",
+        "E",
+        "AE",
+        "EC",
+        "TG",
+        "V",
+        "VE",
+        "PN",
+        "TN",
+        "SS"
+      ]
+    },
+    "live": {
+      "status": "Not Found",
+      "score_format": null
+    },
+    "past": {
+      "status": "Not Found",
+      "has_stats": false,
+      "opponent_format": null
+    }
+  },
+  "Bicycle Racing": {
+    "upcoming": {
+      "status": "OK",
+      "has_sgi": false,
+      "has_odds": true,
+      "count": 6,
+      "sample_keys": [
+        "B",
+        "RLI",
+        "I",
+        "N",
+        "CI",
+        "E",
+        "AE",
+        "EC",
+        "TG",
+        "V",
+        "VE",
+        "PN",
+        "TN",
+        "HSRT",
+        "SSI"
+      ]
+    },
+    "live": {
+      "status": "Not Found",
+      "score_format": null
+    },
+    "past": {
+      "status": "OK",
+      "has_stats": false,
+      "opponent_format": "string",
+      "championships_count": 1,
+      "sample_score": "1 - Mads Pedersen\n2 - Biniam Girmay\n3 - Jasper Philipsen\n4 - Anthony Turgis\n",
+      "sample_keys": [
+        "id",
+        "sportId",
+        "champId",
+        "champName",
+        "opp1",
+        "opp2",
+        "opp1Images",
+        "opp2Images",
+        "opp1Ids",
+        "score",
+        "dopInfo",
+        "dateStart",
+        "matchInfos",
+        "gameTypeName",
+        "gameVidName",
+        "champCountry"
+      ]
+    }
+  },
+  "Golf": {
+    "upcoming": {
+      "status": "OK",
+      "has_sgi": false,
+      "has_odds": true,
+      "count": 50,
+      "sample_keys": [
+        "B",
+        "I",
+        "N",
+        "CI",
+        "E",
+        "AE",
+        "EC",
+        "TG",
+        "V",
+        "VE",
+        "PN",
+        "TN",
+        "SSI",
+        "S",
+        "O1"
+      ]
+    },
+    "live": {
+      "status": "Not Found",
+      "score_format": null
+    },
+    "past": {
+      "status": "Not Found",
+      "has_stats": false,
+      "opponent_format": null
+    }
+  },
+  "Badminton": {
+    "upcoming": {
+      "status": "OK",
+      "has_sgi": false,
+      "has_odds": true,
+      "count": 29,
+      "sample_keys": [
+        "B",
+        "RLI",
+        "I",
+        "N",
+        "CI",
+        "E",
+        "AE",
+        "EC",
+        "TG",
+        "V",
+        "VE",
+        "PN",
+        "TN",
+        "HSRT",
+        "HSI"
+      ]
+    },
+    "live": {
+      "status": "OK",
+      "score_format": {
+        "has_periods": true,
+        "has_point_score": true,
+        "sample_score": {
+          "FS": {
+            "S1": 1,
+            "S2": 1
+          },
+          "PS": [
+            {
+              "Key": 1,
+              "Value": {
+                "S1": 14,
+                "S2": 21,
+                "NF": "1st set"
+              }
+            },
+            {
+              "Key": 2,
+              "Value": {
+                "S1": 21,
+                "S2": 14,
+                "NF": "2nd set"
+              }
+            },
+            {
+              "Key": 3,
+              "Value": {
+                "S1": 6,
+                "S2": 8,
+                "NF": "3rd set"
+              }
+            }
+          ],
+          "CP": 3,
+          "CPS": "3rd set",
+          "P": 1,
+          "TS": 2781,
+          "I": "",
+          "SLS": "46 minutes"
+        }
+      },
+      "count": 4
+    },
+    "past": {
+      "status": "OK",
+      "has_stats": false,
+      "opponent_format": "string",
+      "championships_count": 2,
+      "sample_score": "1:2 (15:21,21:16,19:21)",
+      "sample_keys": [
+        "id",
+        "sportId",
+        "champId",
+        "champName",
+        "opp1",
+        "opp2",
+        "opp1Images",
+        "opp2Images",
+        "opp1Ids",
+        "opp2Ids",
+        "score",
+        "dopInfo",
+        "dateStart",
+        "gameTypeName",
+        "gameVidName",
+        "champCountry"
+      ]
+    }
+  },
+  "Darts": {
+    "upcoming": {
+      "status": "OK",
+      "has_sgi": true,
+      "has_odds": true,
+      "count": 4,
+      "sample_keys": [
+        "B",
+        "RLI",
+        "IG",
+        "I",
+        "N",
+        "CI",
+        "E",
+        "AE",
+        "EC",
+        "TG",
+        "V",
+        "VE",
+        "PN",
+        "TN",
+        "SS"
+      ]
+    },
+    "live": {
+      "status": "Not Found",
+      "score_format": null
+    },
+    "past": {
+      "status": "OK",
+      "has_stats": false,
+      "opponent_format": "string",
+      "championships_count": 3,
+      "sample_score": "3:4 (0:1;0:1;1:0;1:0;0:1;1:0;0:1)",
+      "sample_keys": [
+        "id",
+        "sportId",
+        "champId",
+        "champName",
+        "opp1",
+        "opp2",
+        "opp1Images",
+        "opp2Images",
+        "opp1Ids",
+        "opp2Ids",
+        "score",
+        "dopInfo",
+        "dateStart",
+        "matchInfos",
+        "gameTypeName",
+        "gameVidName",
+        "stadiumId",
+        "champCountry"
+      ]
+    }
+  },
+  "Snooker": {
+    "upcoming": {
+      "status": "OK",
+      "has_sgi": true,
+      "has_odds": true,
+      "count": 2,
+      "sample_keys": [
+        "B",
+        "GVE",
+        "RLI",
+        "IG",
+        "I",
+        "N",
+        "CI",
+        "E",
+        "AE",
+        "EC",
+        "TG",
+        "V",
+        "VE",
+        "PN",
+        "TN"
+      ]
+    },
+    "live": {
+      "status": "OK",
+      "score_format": {
+        "has_periods": true,
+        "has_point_score": true,
+        "sample_score": {
+          "FS": {
+            "S1": 2
+          },
+          "PS": [
+            {
+              "Key": 1,
+              "Value": {
+                "S1": 83,
+                "S2": 32,
+                "NF": "1 frame"
+              }
+            },
+            {
+              "Key": 2,
+              "Value": {
+                "S1": 65,
+                "S2": 16,
+                "NF": "2 frame"
+              }
+            }
+          ],
+          "CP": 3,
+          "CPS": "3 frame",
+          "TD": -1,
+          "TR": -1,
+          "I": "",
+          "SLS": "Event in progress"
+        }
+      },
+      "count": 2
+    },
+    "past": {
+      "status": "OK",
+      "has_stats": false,
+      "opponent_format": "string",
+      "championships_count": 1,
+      "sample_score": "3:1 (92:1,69:53,29:66,92:8)",
+      "sample_keys": [
+        "id",
+        "sportId",
+        "champId",
+        "champName",
+        "opp1",
+        "opp2",
+        "opp1Images",
+        "opp2Images",
+        "opp1Ids",
+        "opp2Ids",
+        "score",
+        "dopInfo",
+        "dateStart",
+        "matchInfos",
+        "gameTypeName",
+        "gameVidName",
+        "stadiumId",
+        "champCountry"
+      ]
+    }
+  },
+  "Cricket": {
+    "upcoming": {
+      "status": "OK",
+      "has_sgi": true,
+      "has_odds": true,
+      "count": 43,
+      "sample_keys": [
+        "B",
+        "IG",
+        "WP",
+        "I",
+        "N",
+        "CI",
+        "E",
+        "AE",
+        "EC",
+        "TG",
+        "V",
+        "VE",
+        "PN",
+        "TN",
+        "SS"
+      ]
+    },
+    "live": {
+      "status": "OK",
+      "score_format": {
+        "has_periods": true,
+        "has_point_score": true,
+        "sample_score": {
+          "FS": {},
+          "PS": [],
+          "CPS": "",
+          "P": 2,
+          "TR": -1,
+          "I": "",
+          "S": [
+            {
+              "Key": "Team1Scores",
+              "Value": "0/0"
+            },
+            {
+              "Key": "Team2Scores",
+              "Value": "0/0"
+            },
+            {
+              "Key": "InnsStats",
+              "Value": "2;0;0.0"
+            }
+          ],
+          "SLS": "Event in progress"
+        }
+      },
+      "count": 21
+    },
+    "past": {
+      "status": "OK",
+      "has_stats": true,
+      "opponent_format": "string",
+      "championships_count": 29,
+      "sample_score": "151/8 - 128/8",
+      "sample_keys": [
+        "id",
+        "sportId",
+        "champId",
+        "champName",
+        "opp1",
+        "opp2",
+        "opp1Images",
+        "opp2Images",
+        "opp1Ids",
+        "opp2Ids",
+        "score",
+        "dopInfo",
+        "videos",
+        "hasSubGame",
+        "dateStart",
+        "countSubGame",
+        "subGame",
+        "matchInfos",
+        "gameTypeName",
+        "gameVidName",
+        "stadiumId",
+        "champCountry"
+      ]
+    }
+  }
+}

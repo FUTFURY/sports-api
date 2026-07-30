@@ -1,23 +1,35 @@
-import { fetchLiveMatches, fetchUpcomingMatches, fetchTournamentBracket } from '../../../services/1xbetService.js';
+import { fetchLiveMatches, fetchUpcomingMatches, fetchTournamentBracket, fetchTournaments } from '../../../services/1xbetService.js';
 import { withCors } from '../../../utils/cors.js';
 import { VERSION } from '../../../utils/version.js';
 
 /**
- * GET /api/tournament/:id
- *
- * Returns a bracket-compatible structure for the given 1xbet tournament ID (LI).
- * Builds bracket stages from live + line matches grouped by round.
- * Always returns 200 (empty Stages if no matches found) — never crashes the iOS app.
+ * GET /api/tournament/:id (or /api/tournaments when id is 'all' / 'index')
  */
 const handler = async (req, res) => {
-    const { id } = req.query;
+    const { id, lang, lng, tz, sportId } = req.query;
 
-    if (!id) {
-        return res.status(400).json({ error: 'Tournament ID is required' });
+    // Handle list all tournaments (/api/tournaments)
+    if (!id || id === 'all' || id === 'index') {
+        try {
+            const finalLang = lang || lng || 'fr';
+            const finalTz = tz || '1';
+            const finalSportId = sportId || '1';
+
+            const tournaments = await fetchTournaments(finalSportId, finalLang, finalTz);
+
+            return res.status(200).json({
+                success: true,
+                version: VERSION,
+                data: tournaments,
+                count: tournaments.length
+            });
+        } catch (error) {
+            console.error('API Error /tournaments:', error);
+            return res.status(500).json({ success: false, version: VERSION, message: 'Internal Server Error' });
+        }
     }
 
     // A: Try direct scraping with the provided ID (numeric OR hex)
-    // Both types of IDs work on the EventsStat stage endpoint.
     try {
         const bracket = await fetchTournamentBracket(id);
         if (bracket && bracket.T?.Stages && bracket.T.Stages.length > 0) {
@@ -31,8 +43,7 @@ const handler = async (req, res) => {
         console.warn(`Direct scraping for ID ${id} failed:`, e.message);
     }
 
-    // B: FALLBACK - Contextual lookup (useful if the provided ID is a category ID 
-    // or if 1xbet numeric ID differs from EventsStat numeric ID)
+    // B: FALLBACK - Contextual lookup
     let tournamentId = parseInt(id, 10);
     const isNumeric = !isNaN(tournamentId);
 
@@ -49,7 +60,6 @@ const handler = async (req, res) => {
             targetMatches = allMatches.filter(m => m.tournamentId === tournamentId);
         }
 
-        // Try to find the EventsStat Hex ID or other venueImageId from matches
         const hexId = targetMatches.find(m => m.venueImageId)?.venueImageId;
         if (hexId && hexId !== id) {
             try {
@@ -66,7 +76,6 @@ const handler = async (req, res) => {
             }
         }
 
-        // C: LAST FALLBACK - Manual grouping of currently active matches
         if (targetMatches.length === 0) {
             return res.status(200).json({
                 success: true,
@@ -85,7 +94,7 @@ const handler = async (req, res) => {
                 I: String(match.id),
                 D: match.startTime,
                 W: null,
-                St: match.isLive ? 2 : 1, // 2=Live, 1=Scheduled
+                St: match.isLive ? 2 : 1,
                 H: { XI: match.player1Id, T: match.player1 },
                 A: { XI: match.player2Id, T: match.player2 },
                 S1: match.score?.gamesPlayer1 ?? null,
@@ -94,7 +103,6 @@ const handler = async (req, res) => {
             });
         }
 
-        // Sort stages by logical tournament round order
         const ROUND_ORDER = [
             'Round of 128', 'Round of 64', 'Round of 32', 'Round of 16',
             'Quarter-final', 'Semi-final', 'Final'
