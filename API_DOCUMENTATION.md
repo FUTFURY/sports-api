@@ -66,11 +66,11 @@ Retrieve all supported sports with active capabilities indicators.
 ---
 
 ### 1.2 GET `/matches`
-Get active live, upcoming, or finished/past matches for a specific sport.
+Get active live, upcoming, or finished matches for a specific sport.
 * **Query Parameters**:
-  * `sportId` (integer, optional): The ID of the sport (e.g. `1` for Football, `4` for Tennis, `41` for Golf, default: `1`).
-  * `type` (string, optional): Filter matches by status: `live`, `upcoming`, `both` (default), `finished`, `results`, `past`, `history`, `ended`, or `all`.
-  * `date` (string, optional): Format `YYYY-MM-DD` (defaults to today). Used when `type` requests past/finished matches.
+  * `sportId` (integer, optional): The ID of the sport (e.g. `1` for Football, `4` for Tennis, default: `1`).
+  * `type` (string, optional): Filter matches: `live`, `upcoming`, `finished`, `both` (live+upcoming, default), or `all` (live+upcoming+finished).
+  * `date` (string, optional): Format `YYYY-MM-DD` (defaults to today). Used when `type=finished` or `type=all`.
 
 **Response Example (`/matches?sportId=1&type=both`)**:
 ```json

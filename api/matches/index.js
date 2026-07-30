@@ -3,11 +3,11 @@ import { withCors } from '../../utils/cors.js';
 import { VERSION } from '../../utils/version.js';
 
 /**
- * GET /api/matches?sportId=N&type=live|upcoming|both|finished|results|past|history|ended|all&date=YYYY-MM-DD
+ * GET /api/matches?sportId=N&type=live|upcoming|finished|both|all&date=YYYY-MM-DD
  *
- * sportId : ID numérique du sport (requis/défaut: 1). ex: 1=Football, 4=Tennis, 3=Basketball
- * type    : 'live', 'upcoming', 'both', 'finished', 'results', 'past', 'history', 'ended', 'all' (défaut: 'both')
- * date    : Date au format YYYY-MM-DD (optionnel, défaut: date du jour pour les matchs passés/terminés)
+ * sportId : ID numérique du sport (défaut: 1 Football)
+ * type    : 'live', 'upcoming', 'finished', 'both' (défaut), ou 'all'
+ * date    : Date au format YYYY-MM-DD (optionnel, utilisé si type=finished ou type=all)
  */
 const handler = async (req, res) => {
     try {
@@ -22,8 +22,6 @@ const handler = async (req, res) => {
         let upcoming = [];
         let finished = [];
 
-        const isPastType = ['finished', 'results', 'past', 'history', 'ended'].includes(type);
-
         const promises = [];
         if (type === 'live' || type === 'both' || type === 'all') {
             promises.push(fetchLiveMatches(finalSportId, finalLang, finalTz).then(res => live = res));
@@ -31,7 +29,7 @@ const handler = async (req, res) => {
         if (type === 'upcoming' || type === 'both' || type === 'all') {
             promises.push(fetchUpcomingMatches(finalSportId, finalLang, finalTz).then(res => upcoming = res));
         }
-        if (isPastType || type === 'all') {
+        if (type === 'finished' || type === 'all') {
             promises.push(fetchResults(date, finalSportId, finalLang, finalTz).then(res => finished = res));
         }
 
@@ -41,7 +39,7 @@ const handler = async (req, res) => {
             success: true,
             version: VERSION,
             type,
-            ...(isPastType || type === 'all' ? { date } : {}),
+            ...(type === 'finished' || type === 'all' ? { date } : {}),
             data: {
                 live,
                 upcoming,
@@ -60,4 +58,5 @@ const handler = async (req, res) => {
 };
 
 export default withCors(handler);
+
 
