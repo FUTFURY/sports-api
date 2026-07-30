@@ -143,6 +143,82 @@ export const fetchResults = async (date, sportId = DEFAULT_SPORT_ID, lang = 'en'
     if (cached) return cached;
 
     try {
+        const [year, month, day] = date.split('-').map(Number);
+        const tsMidnight = Date.UTC(year, month - 1, day) / 1000;
+        const tsFrom = tsMidnight - 3 * 3600;  // 21:00 UTC veille
+        const tsTo   = tsFrom + 86400;          // 21:00 UTC jour cible
+
+        const champsPath = `/service-api/result/web/api/v2/champs?dateFrom=${tsFrom}&dateTo=${tsTo}&lng=${lang}&ref=1&sportIds=${sportId}`;
+        let champsData;
+        try {
+            champsData = await fetchWithRotation(champsPath, '1xbet');
+        } catch (e) {
+            champsData = null;
+        }
+
+        const champs = champsData?.items || [];
+        if (champs.length > 0) {
+            const selectedChamps = champs.slice(0, 35);
+            const results = await Promise.all(
+                selectedChamps.map(async (champ) => {
+                    const gamesPath = `/service-api/result/web/api/v3/games?champId=${champ.id}&dateFrom=${tsFrom}&dateTo=${tsTo}&lng=${lang}&ref=1`;
+                    try {
+                        const gamesData = await fetchWithRotation(gamesPath, '1xbet');
+                        const items = gamesData?.items || [];
+                        return items.map(g => {
+                            let sets = {};
+                            let s1 = 0, s2 = 0;
+                            if (g.score) {
+                                const parts = g.score.split(' (');
+                                const mainScore = parts[0].split(':');
+                                s1 = parseInt(mainScore[0]) || 0;
+                                s2 = parseInt(mainScore[1]) || 0;
+                                if (parts.length > 1) {
+                                    const setsStr = parts[1].replace(')', '');
+                                    const setsArr = setsStr.split(',');
+                                    setsArr.forEach((s, idx) => {
+                                        const sp = s.split(':');
+                                        sets[`S1`] = (sets[`S1`] || {});
+                                        sets[`S2`] = (sets[`S2`] || {});
+                                        sets[`S1`][idx] = parseInt(sp[0]) || 0;
+                                        sets[`S2`][idx] = parseInt(sp[1]) || 0;
+                                    });
+                                }
+                            }
+                            return {
+                                id: g.id,
+                                title: `${g.opp1} vs ${g.opp2}`,
+                                tournamentId: champ.id,
+                                tournamentName: champ.name,
+                                player1: g.opp1,
+                                player1Id: g.opp1Ids?.[0],
+                                player1Image: g.opp1Images?.[0],
+                                player2: g.opp2,
+                                player2Id: g.opp2Ids?.[0],
+                                player2Image: g.opp2Images?.[0],
+                                startTime: g.dateStart,
+                                score: {
+                                    gamesPlayer1: s1,
+                                    gamesPlayer2: s2,
+                                    sets
+                                },
+                                isLive: false,
+                                isFinished: true
+                            };
+                        }).filter(Boolean);
+                    } catch {
+                        return [];
+                    }
+                })
+            );
+            const allMatches = results.flat();
+            if (allMatches.length > 0) {
+                cache.set(cacheKey, allMatches, 3600);
+                return allMatches;
+            }
+        }
+
+        // Fallback: GetResultsZip
         const url = `${MAIN_BASE_URL}/service-api/LineFeed/GetResultsZip?sports=${sportId}&lng=${lang}&day=${date}&country=158&tf=${tz}`;
         const data = await scrapingGet(url, {}, sportId);
 
