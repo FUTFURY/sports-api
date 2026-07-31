@@ -393,9 +393,59 @@ export const fetchResults = async (date, sportId = DEFAULT_SPORT_ID, lang = 'en'
     }
 };
 
-function isCyberLeague(item) {
+function isNoiseLeague(item, filterCyber = true) {
     const name = (item.L || item.LE || item.LR || '').toLowerCase();
-    return name.includes('cyber') || name.includes('esoccer') || name.includes('ebasketball') || name.includes('fc 26') || name.includes('virtual');
+
+    // 1. Cyber / Esports / Virtual
+    if (filterCyber) {
+        if (name.includes('cyber') || name.includes('esoccer') || name.includes('ebasketball') || 
+            name.includes('esports') || name.includes('e-tennis') || name.includes('fc 26') || 
+            name.includes('fc 25') || name.includes('virtual') || name.includes('gg league') || 
+            name.includes('volta') || name.includes('ecomp') || name.includes('short football') || 
+            name.includes('student league') || name.includes('budnesliga lfl') || 
+            name.includes('division 4x4') || name.includes('mls+')) {
+            return true;
+        }
+    }
+
+    // 2. Outright / Winner markets / Speculative betting categories
+    if (name.includes('. winner') || name.includes('. vainqueur') || name.includes('. outright') || 
+        name.endsWith(' winner') || name.endsWith(' vainqueur') || name.includes('paris spéciaux') || 
+        name.includes('daily specials') || name.includes('paris à long terme') || 
+        name.includes('matchs alternatifs') || name.includes('statistiques du round') || 
+        name.includes('statistiques du tour')) {
+        return true;
+    }
+
+    return false;
+}
+
+function isMajorLeagueItem(item, sportId) {
+    const name = item.L || item.LE || item.LR || '';
+    const n = name.toLowerCase();
+    const sId = Number(item.SI || sportId);
+
+    if (sId === 4) { // Tennis: ATP, WTA, Challenger, Grand Chelem
+        return name.startsWith('ATP') || name.startsWith('WTA') || 
+               name.startsWith('Challenger') || n.includes('wimbledon') || 
+               n.includes('roland garros') || n.includes('us open') || n.includes('australian open');
+    }
+
+    if (sId === 1) { // Football: Major top divisions & international cups
+        const isTopDivision = n.includes('premier league') || n.includes('la liga') || 
+                              n.includes('serie a') || n.includes('bundesliga') || 
+                              n.includes('ligue 1') || n.includes('champions league') || 
+                              n.includes('europa league') || n.includes('conference league') || 
+                              n.includes('world cup') || n.includes('euro') || 
+                              n.includes('copa libertadores') || n.includes('copa america') || 
+                              n.includes('nations league') || n.includes('supercoupe');
+        const isMinorSub = n.includes('u20') || n.includes('u23') || n.includes('u19') || 
+                           n.includes('réserve') || n.includes('reserve') || n.includes('2e') || 
+                           n.includes('3e') || n.includes('league 1') || n.includes('league 2');
+        return isTopDivision && !isMinorSub;
+    }
+
+    return true;
 }
 
 function parseLeaguesFromFeed(data, targetSportId = null, filterCyber = true) {
@@ -410,7 +460,7 @@ function parseLeaguesFromFeed(data, targetSportId = null, filterCyber = true) {
         if (item.LI) {
             const sportId = item.SI || parentSportId;
             if (targetSportId && String(sportId) !== String(targetSportId)) continue;
-            if (filterCyber && isCyberLeague(item)) continue;
+            if (isNoiseLeague(item, filterCyber)) continue;
             if (!seenIds.has(item.LI)) {
                 seenIds.add(item.LI);
                 leagues.push(formatLeagueItem(item, sportId));
@@ -422,7 +472,7 @@ function parseLeaguesFromFeed(data, targetSportId = null, filterCyber = true) {
                 if (sub.LI) {
                     const sportId = sub.SI || parentSportId;
                     if (targetSportId && String(sportId) !== String(targetSportId)) continue;
-                    if (filterCyber && isCyberLeague(sub)) continue;
+                    if (isNoiseLeague(sub, filterCyber)) continue;
                     if (!seenIds.has(sub.LI)) {
                         seenIds.add(sub.LI);
                         leagues.push(formatLeagueItem(sub, sportId));
@@ -435,6 +485,7 @@ function parseLeaguesFromFeed(data, targetSportId = null, filterCyber = true) {
 }
 
 function formatLeagueItem(item, sportId) {
+    const isMajor = isMajorLeagueItem(item, sportId);
     return {
         id: item.LI,
         leagueId: item.LI,
@@ -443,13 +494,15 @@ function formatLeagueItem(item, sportId) {
         sportId: item.SI || (sportId ? Number(sportId) : null),
         countryId: item.CI || null,
         matchCount: item.GC || 1,
-        image: item.CHIMG ? `https://refpa.top/static/img/champs/${item.CHIMG}` : null
+        image: item.CHIMG ? `https://refpa.top/static/img/champs/${item.CHIMG}` : null,
+        isMajor,
+        isTop: isMajor
     };
 }
 
-export const fetchLeagues = async (sportId = null, type = 'both', lang = 'fr', tz = '1', includeCyber = false) => {
+export const fetchLeagues = async (sportId = null, type = 'both', lang = 'fr', tz = '1', includeCyber = false, mainOnly = false) => {
     const finalSportId = sportId ? String(sportId) : null;
-    const cacheKey = `leagues_${finalSportId || 'all'}_${type}_${lang}_${tz}_${includeCyber}`;
+    const cacheKey = `leagues_${finalSportId || 'all'}_${type}_${lang}_${tz}_${includeCyber}_${mainOnly}`;
     const cached = cache.get(cacheKey);
     if (cached) return cached;
 
@@ -483,8 +536,13 @@ export const fetchLeagues = async (sportId = null, type = 'both', lang = 'fr', t
         Promise.all(upcomingPromises)
     ]);
 
-    const liveLeagues = liveResults.flat();
-    const upcomingLeagues = upcomingResults.flat();
+    let liveLeagues = liveResults.flat();
+    let upcomingLeagues = upcomingResults.flat();
+
+    if (mainOnly) {
+        liveLeagues = liveLeagues.filter(l => l.isMajor);
+        upcomingLeagues = upcomingLeagues.filter(l => l.isMajor);
+    }
 
     const result = {
         live: liveLeagues,

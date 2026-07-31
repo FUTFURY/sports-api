@@ -14,19 +14,21 @@ import { VERSION } from '../../utils/version.js';
  */
 const handler = async (req, res) => {
     try {
-        const { lang, lng, tz, sportId, sport, type, cyber } = req.query;
+        const { lang, lng, tz, sportId, sport, type, cyber, mainOnly, major, top } = req.query;
         const finalLang = lang || lng || 'fr';
         const finalTz = tz || '1';
         const finalSportId = sportId || sport || null;
         const finalType = (type || 'both').toLowerCase();
         const includeCyber = cyber === 'true';
+        const filterMainOnly = mainOnly === 'true' || major === 'true' || top === 'true';
 
         const leaguesData = await fetchLeagues(
             finalSportId,
             finalType,
             finalLang,
             finalTz,
-            includeCyber
+            includeCyber,
+            filterMainOnly
         );
 
         const liveCount = leaguesData.live ? leaguesData.live.length : 0;
@@ -38,6 +40,7 @@ const handler = async (req, res) => {
             sportId: finalSportId ? parseInt(finalSportId, 10) : null,
             type: finalType,
             cyber: includeCyber,
+            mainOnly: filterMainOnly,
             data: {
                 live: leaguesData.live || [],
                 upcoming: leaguesData.upcoming || []
