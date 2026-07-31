@@ -65,7 +65,59 @@ Retrieve all supported sports with active capabilities indicators.
 
 ---
 
-### 1.2 GET `/matches`
+### 1.2 GET `/leagues`
+Ultra-fast retrieval of active league/championship IDs, names, country IDs, logos, and match counts for live and upcoming matches without loading heavy match objects.
+* **Query Parameters**:
+  * `sportId` (integer, optional): Numerical ID of the sport (e.g. `1` Football, `4` Tennis). If omitted, fetches leagues across major active sports.
+  * `type` (string, optional): `'live'`, `'upcoming'` (or `'line'`), or `'both'` (default: `'both'`).
+  * `cyber` (boolean, optional): Set to `true` to include virtual/cyber sports. Defaults to `false`.
+  * `lang` (string, optional): Language code (`'fr'`, `'en'`). Defaults to `'fr'`.
+
+**Response Example (`/leagues?sportId=4&type=both`)**:
+```json
+{
+  "success": true,
+  "version": "1.0.3",
+  "sportId": 4,
+  "type": "both",
+  "cyber": false,
+  "data": {
+    "live": [
+      {
+        "id": 3052412,
+        "leagueId": 3052412,
+        "name": "WTA. Targu Mures. Doubles",
+        "englishName": "WTA. Targu Mures. Doubles",
+        "sportId": 4,
+        "countryId": 152,
+        "matchCount": 1,
+        "image": null
+      }
+    ],
+    "upcoming": [
+      {
+        "id": 1388,
+        "leagueId": 1388,
+        "name": "ATP. Washington",
+        "englishName": "ATP. Washington",
+        "sportId": 4,
+        "countryId": 153,
+        "matchCount": 4,
+        "image": null
+      }
+    ]
+  },
+  "count": {
+    "live": 28,
+    "upcoming": 59,
+    "total": 87
+  }
+}
+```
+
+---
+
+### 1.3 GET `/matches`
 Get active live, upcoming, or finished matches for a specific sport.
 * **Query Parameters**:
   * `sportId` (integer, optional): The ID of the sport (e.g. `1` for Football, `4` for Tennis, default: `1`).

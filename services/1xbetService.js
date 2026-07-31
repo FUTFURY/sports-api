@@ -393,32 +393,129 @@ export const fetchResults = async (date, sportId = DEFAULT_SPORT_ID, lang = 'en'
     }
 };
 
+function isCyberLeague(item) {
+    const name = (item.L || item.LE || item.LR || '').toLowerCase();
+    return name.includes('cyber') || name.includes('esoccer') || name.includes('ebasketball') || name.includes('fc 26') || name.includes('virtual');
+}
+
+function parseLeaguesFromFeed(data, targetSportId = null, filterCyber = true) {
+    if (!data || !Array.isArray(data.Value)) return [];
+    const leagues = [];
+    const seenIds = new Set();
+    
+    for (const item of data.Value) {
+        const parentSportId = item.I || item.SI;
+
+        // Case A: item itself is a league (has LI)
+        if (item.LI) {
+            const sportId = item.SI || parentSportId;
+            if (targetSportId && String(sportId) !== String(targetSportId)) continue;
+            if (filterCyber && isCyberLeague(item)) continue;
+            if (!seenIds.has(item.LI)) {
+                seenIds.add(item.LI);
+                leagues.push(formatLeagueItem(item, sportId));
+            }
+        }
+        // Case B: item contains an array of leagues in item.L
+        else if (Array.isArray(item.L)) {
+            for (const sub of item.L) {
+                if (sub.LI) {
+                    const sportId = sub.SI || parentSportId;
+                    if (targetSportId && String(sportId) !== String(targetSportId)) continue;
+                    if (filterCyber && isCyberLeague(sub)) continue;
+                    if (!seenIds.has(sub.LI)) {
+                        seenIds.add(sub.LI);
+                        leagues.push(formatLeagueItem(sub, sportId));
+                    }
+                }
+            }
+        }
+    }
+    return leagues;
+}
+
+function formatLeagueItem(item, sportId) {
+    return {
+        id: item.LI,
+        leagueId: item.LI,
+        name: item.L || item.LE || item.LR || '',
+        englishName: item.LE || item.L || item.LR || '',
+        sportId: item.SI || (sportId ? Number(sportId) : null),
+        countryId: item.CI || null,
+        matchCount: item.GC || 1,
+        image: item.CHIMG ? `https://refpa.top/static/img/champs/${item.CHIMG}` : null
+    };
+}
+
+export const fetchLeagues = async (sportId = null, type = 'both', lang = 'fr', tz = '1', includeCyber = false) => {
+    const finalSportId = sportId ? String(sportId) : null;
+    const cacheKey = `leagues_${finalSportId || 'all'}_${type}_${lang}_${tz}_${includeCyber}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return cached;
+
+    const fetchLive = type === 'live' || type === 'both' || type === 'all';
+    const fetchUpcoming = type === 'upcoming' || type === 'line' || type === 'both' || type === 'all';
+
+    const targetSports = finalSportId ? [finalSportId] : ['1', '4', '3', '2', '6', '8'];
+
+    const livePromises = fetchLive ? targetSports.map(sId => {
+        const livePath = `/service-api/LiveFeed/GetSportsShortZip?sports=${sId}&lng=${lang}&country=158`;
+        return fetchWithRotation(livePath, '1xbet')
+            .then(res => parseLeaguesFromFeed(res, sId, !includeCyber))
+            .catch(err => {
+                console.error(`Error fetching live leagues for sport ${sId}:`, err.message);
+                return [];
+            });
+    }) : [];
+
+    const upcomingPromises = fetchUpcoming ? targetSports.map(sId => {
+        const upcomingPath = `/service-api/LineFeed/GetSportsShortZip?sports=${sId}&lng=${lang}&country=158`;
+        return fetchWithRotation(upcomingPath, '1xbet')
+            .then(res => parseLeaguesFromFeed(res, sId, !includeCyber))
+            .catch(err => {
+                console.error(`Error fetching upcoming leagues for sport ${sId}:`, err.message);
+                return [];
+            });
+    }) : [];
+
+    const [liveResults, upcomingResults] = await Promise.all([
+        Promise.all(livePromises),
+        Promise.all(upcomingPromises)
+    ]);
+
+    const liveLeagues = liveResults.flat();
+    const upcomingLeagues = upcomingResults.flat();
+
+    const result = {
+        live: liveLeagues,
+        upcoming: upcomingLeagues
+    };
+
+    cache.set(cacheKey, result, 300);
+    return result;
+};
+
 export const fetchTournaments = async (sportId = DEFAULT_SPORT_ID, lang = 'en', tz = '3') => {
     const cacheKey = `active_tournaments_${sportId}_${lang}_${tz}`;
     const cached = cache.get(cacheKey);
     if (cached) return cached;
 
     try {
-        const [live, upcoming] = await Promise.all([
-            fetchLiveMatches(sportId, lang, tz),
-            fetchUpcomingMatches(sportId, lang, tz)
-        ]);
+        const leaguesResult = await fetchLeagues(sportId, 'both', lang, tz, false);
+        const allLeaguesMap = new Map();
 
-        const allMatches = [...live, ...upcoming];
-        const tournamentsMap = new Map();
-
-        allMatches.forEach(match => {
-            if (match.tournamentId && match.tournamentName && !tournamentsMap.has(match.tournamentId)) {
-                tournamentsMap.set(match.tournamentId, {
-                    id: match.tournamentId,
-                    name: match.tournamentName,
-                    eventsStatId: match.venueImageId || null,
+        [...leaguesResult.live, ...leaguesResult.upcoming].forEach(league => {
+            if (!allLeaguesMap.has(league.id)) {
+                allLeaguesMap.set(league.id, {
+                    id: league.id,
+                    name: league.name,
+                    eventsStatId: null,
                     isTop: false
                 });
             }
         });
 
-        const normalized = Array.from(tournamentsMap.values()).map(mapTournament);
+        const normalized = Array.from(allLeaguesMap.values()).map(mapTournament);
         cache.set(cacheKey, normalized, 3600);
         return normalized;
     } catch (error) {
@@ -1365,6 +1462,7 @@ export const fetchTeamMatches = async (teamId = null, sportId = 1, lang = 'fr', 
 export default {
     fetchLiveMatches,
     fetchUpcomingMatches,
+    fetchLeagues,
     fetchTournaments,
     fetchMatchDetails,
     getATPTop100,

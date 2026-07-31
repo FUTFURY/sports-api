@@ -11,6 +11,10 @@
     {
       "source": "/api/tournaments",
       "destination": "/api/tournament/all"
+    },
+    {
+      "source": "/api/leagues",
+      "destination": "/api/leagues"
     }
   ]
 }
