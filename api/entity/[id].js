@@ -77,7 +77,7 @@ const handler = async (req, res) => {
                 // Try fetching as Championship/League
                 const leagueStats = await xbet.fetchChampionshipDetailedStats(targetStatId, targetLang).catch(() => null);
                 
-                if (leagueStats && (leagueStats.upcoming?.length > 0 || leagueStats.past?.length > 0)) {
+                if (leagueStats && (leagueStats.upcoming?.length > 0 || leagueStats.results?.length > 0 || leagueStats.past?.length > 0)) {
                     results = {
                         ...leagueStats,
                         entityType: 'league'
