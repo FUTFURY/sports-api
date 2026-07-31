@@ -107,13 +107,14 @@ export const fetchLiveMatches = async (sportId = DEFAULT_SPORT_ID, lang = 'en', 
     if (cached) return cached;
 
     try {
-        const path = champId
-            ? `/service-api/LiveFeed/Get1x2_VZip?champs=${champId}&count=50&lng=${lang}&mode=4&country=158&getEmpty=true&virtualSports=true&noFilterBlockEvent=true&tf=${tz}`
-            : `/service-api/LiveFeed/Get1x2_VZip?sports=${sportId}&count=40&lng=${lang}&mode=4&country=158&getEmpty=true&virtualSports=true&noFilterBlockEvent=true&tf=${tz}`;
+        const path = `/service-api/LiveFeed/Get1x2_VZip?sports=${sportId}&count=500&lng=${lang}&mode=4&getEmpty=true&noFilterBlockEvent=true`;
         const data = await fetchWithRotation(path, '1xbet');
-        const matches = data?.Value || [];
+        let matches = data?.Value || [];
+        if (champId) {
+            matches = matches.filter(m => String(m.LI || m.champId) === String(champId));
+        }
         const normalized = matches.map(mapMatch).filter(Boolean);
-        cache.set(cacheKey, normalized, 60);
+        cache.set(cacheKey, normalized, 30);
         return normalized;
     } catch (error) {
         console.error(`Error fetching live matches for sport ${sportId} champ ${champId}:`, error.message);
@@ -128,10 +129,13 @@ export const fetchUpcomingMatches = async (sportId = DEFAULT_SPORT_ID, lang = 'e
 
     try {
         const path = champId
-            ? `/service-api/LineFeed/Get1x2_VZip?champs=${champId}&count=50&lng=${lang}&mode=4&country=158&getEmpty=true&virtualSports=true&tf=${tz}`
-            : `/service-api/LineFeed/Get1x2_VZip?sports=${sportId}&count=40&lng=${lang}&mode=4&country=158&getEmpty=true&virtualSports=true&noFilterBlockEvent=true&tf=${tz}`;
+            ? `/service-api/LineFeed/Get1x2_VZip?champs=${champId}&count=200&lng=${lang}&mode=4&getEmpty=true&noFilterBlockEvent=true`
+            : `/service-api/LineFeed/Get1x2_VZip?sports=${sportId}&count=200&lng=${lang}&mode=4&getEmpty=true&noFilterBlockEvent=true`;
         const data = await fetchWithRotation(path, '1xbet');
-        const matches = data?.Value || [];
+        let matches = data?.Value || [];
+        if (champId && !path.includes('champs=')) {
+            matches = matches.filter(m => String(m.LI || m.champId) === String(champId));
+        }
         const normalized = matches.map(mapMatch).filter(Boolean);
         cache.set(cacheKey, normalized, 300);
         return normalized;
@@ -1334,7 +1338,11 @@ export const fetchChampionshipDetailedStats = async (hexId, lang = 'fr') => {
     if (cached) return cached;
 
     try {
-        const data = await fetchWithRotation(`/fr/services-api/SiteService/ChampionshipDetailed?championshipId=${hexId}&ln=${lang}`, 'stat');
+        const [data, liveTennis, liveFootball] = await Promise.all([
+            fetchWithRotation(`/fr/services-api/SiteService/ChampionshipDetailed?championshipId=${hexId}&ln=${lang}`, 'stat').catch(() => null),
+            fetchLiveMatches(4, lang).catch(() => []),
+            fetchLiveMatches(1, lang).catch(() => [])
+        ]);
         
         const mapStatMatch = (m) => {
             const hImg = m.H?.IM ? (m.H.IM.startsWith('http') ? m.H.IM : `https://sa.1xbet.com${m.H.IM}`) : null;
@@ -1356,26 +1364,59 @@ export const fetchChampionshipDetailedStats = async (hexId, lang = 'fr') => {
                 time: m.D || m.T,
                 date: m.D || m.T,
                 isLive: false,
-                tournamentName: data.C?.N || m.S?.N || null,
+                tournamentName: data?.C?.N || m.S?.N || null,
                 sportId: 1
             };
         };
 
-        const sortedUpcoming = (data.F || data.upcoming || []).map(mapStatMatch).sort((a, b) => a.time - b.time);
-        const sortedPast = (data.G || data.results || []).map(mapStatMatch).sort((a, b) => b.time - a.time);
+        const allLiveMatches = [...liveTennis, ...liveFootball];
+        const champName = data?.C?.N ? data.C.N.toLowerCase() : '';
+        const matchingLive = allLiveMatches.filter(m => 
+            String(m.tournamentId) === String(hexId) || 
+            String(m.venueImageId) === String(hexId) || 
+            (champName && m.tournamentName && m.tournamentName.toLowerCase().includes(champName))
+        ).map(lm => ({
+            id: String(lm.id),
+            name: `${lm.player1} v ${lm.player2}`,
+            home: lm.player1,
+            away: lm.player2,
+            homeId: lm.player1Id,
+            awayId: lm.player2Id,
+            homeImage: lm.player1Image,
+            awayImage: lm.player2Image,
+            homeScore: lm.score?.gamesPlayer1 || 0,
+            awayScore: lm.score?.gamesPlayer2 || 0,
+            isHomeWinner: false,
+            isAwayWinner: false,
+            time: lm.startTime,
+            date: lm.startTime,
+            isLive: true,
+            status: "EN DIRECT",
+            tournamentName: lm.tournamentName,
+            sportId: lm.sportId || 4
+        }));
+
+        let sortedUpcoming = (data?.F || data?.upcoming || []).map(mapStatMatch).sort((a, b) => a.time - b.time);
+        const sortedPast = (data?.G || data?.results || []).map(mapStatMatch).sort((a, b) => b.time - a.time);
+
+        // Prepend live matches to upcoming/today list
+        if (matchingLive.length > 0) {
+            const liveIds = new Set(matchingLive.map(m => m.id));
+            sortedUpcoming = [...matchingLive, ...sortedUpcoming.filter(m => !liveIds.has(m.id))];
+        }
 
         const results = {
-            name: data.C?.N || data.playerName || null,
-            today: sortedUpcoming.find(m => {
+            name: data?.C?.N || data?.playerName || (matchingLive[0]?.tournamentName) || null,
+            today: matchingLive.length > 0 ? matchingLive[0] : (sortedUpcoming.find(m => {
                 const matchDate = new Date(m.time * 1000).toISOString().split('T')[0];
                 const todayDate = new Date().toISOString().split('T')[0];
                 return matchDate === todayDate;
-            }) || null,
+            }) || null),
             upcoming: sortedUpcoming,
             results: sortedPast
         };
 
-        cache.set(cacheKey, results, 900);
+        cache.set(cacheKey, results, 60); // 60s cache for dynamic live updating
         return results;
     } catch (e) {
         console.error(`Error fetching detailed champ stats for ${hexId}:`, e.message);
