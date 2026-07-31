@@ -2,6 +2,37 @@
  * Normalizes 1xbet API matching data schemas into readable JSON.
  */
 
+export const getImageUrl = (img) => {
+    if (!img) return null;
+    if (typeof img !== 'string') return null;
+    if (img.startsWith('http://') || img.startsWith('https://')) return img;
+    if (img.startsWith('/')) return `https://eventsstat.com${img}`;
+    return `https://eventsstat.com/sfiles/logo_teams/${img}`;
+};
+
+export const formatParisDate = (timestamp) => {
+    if (!timestamp) return { startTime: null, dateIso: null, timeParis: null, dateParis: null, formattedTimeParis: null };
+    const tsInMs = Number(timestamp) > 1e11 ? Number(timestamp) : Number(timestamp) * 1000;
+    const dateObj = new Date(tsInMs);
+    
+    if (isNaN(dateObj.getTime())) {
+        return { startTime: Number(timestamp), dateIso: null, timeParis: null, dateParis: null, formattedTimeParis: null };
+    }
+
+    const iso = dateObj.toISOString();
+    const timeParis = dateObj.toLocaleTimeString('fr-FR', { timeZone: 'Europe/Paris', hour: '2-digit', minute: '2-digit' });
+    const dateParis = dateObj.toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris', day: '2-digit', month: '2-digit', year: 'numeric' });
+    const formattedTimeParis = `${dateParis} ${timeParis}`;
+
+    return {
+        startTime: Number(timestamp),
+        dateIso: iso,
+        timeParis,
+        dateParis,
+        formattedTimeParis
+    };
+};
+
 // Basic mapper for a single match or game object
 export const mapMatch = (matchData) => {
     if (!matchData) return null;
@@ -13,6 +44,10 @@ export const mapMatch = (matchData) => {
         matchData.MIS.forEach(item => { misMap[item.K] = item.V; });
     }
 
+    const p1ImgRaw = matchData.O1IMG?.[0] || matchData.O1I || null;
+    const p2ImgRaw = matchData.O2IMG?.[0] || matchData.O2I || null;
+    const dateInfo = formatParisDate(matchData.S);
+
     return {
         id: matchData.I, // Game ID
         tournamentId: matchData.LI,
@@ -22,14 +57,14 @@ export const mapMatch = (matchData) => {
         player1Id: matchData.O1I,
         player1: matchData.O1E || matchData.O1, // Player 1 Name
         player1CountryId: matchData.O1C,
-        player1Image: matchData.O1IMG?.[0],
+        player1Image: getImageUrl(p1ImgRaw),
 
         player2Id: matchData.O2I,
         player2: matchData.O2E || matchData.O2, // Player 2 Name
         player2CountryId: matchData.O2C,
-        player2Image: matchData.O2IMG?.[0],
+        player2Image: getImageUrl(p2ImgRaw),
 
-        startTime: matchData.S, // Unix timestamp representing start time
+        ...dateInfo,
         score: mapScore(matchData.SC),
         winProbability: matchData.WP, // e.g. { P1: 0.22, P2: 0.78 }
         isLive: !!matchData.SC, // If score structure exists, it's often live or finished
@@ -65,13 +100,45 @@ export const mapOdds = (events) => {
 
 export const mapScore = (sc) => {
     if (!sc) return null;
+
+    const p1Points = sc.SS?.S1 !== undefined ? String(sc.SS.S1) : null;
+    const p2Points = sc.SS?.S2 !== undefined ? String(sc.SS.S2) : null;
+    const currentGamePoints = (p1Points !== null && p2Points !== null) ? `${p1Points} - ${p2Points}` : null;
+
+    const setsDetail = (Array.isArray(sc.PS) ? sc.PS : []).map(item => {
+        const val = item.Value || {};
+        const tb = val.SS || val.TB || null;
+        const s1 = val.S1 ?? 0;
+        const s2 = val.S2 ?? 0;
+        const formatted = tb ? `${s1}-${s2} (${tb})` : `${s1}-${s2}`;
+        return {
+            setNumber: item.Key || 1,
+            name: val.NF || `Set ${item.Key || 1}`,
+            gamesPlayer1: s1,
+            gamesPlayer2: s2,
+            tiebreakScore: tb,
+            scoreFormatted: formatted
+        };
+    });
+
+    const servingPlayer = sc.P || null; // 1 = Player 1 serving, 2 = Player 2 serving
+
     return {
-        sets: sc.FS, // Set scores array/object 
-        gamesPlayer1: sc.S1, // Overall games/sets won
+        sets: sc.FS,
+        gamesPlayer1: sc.S1,
         gamesPlayer2: sc.S2,
-        currentSetScore: sc.PS, // Point score or current set details
-        currentPointsP1: sc.SS?.S1 ?? null,
-        currentPointsP2: sc.SS?.S2 ?? null
+        setsWonPlayer1: sc.S1 ?? 0,
+        setsWonPlayer2: sc.S2 ?? 0,
+        currentSet: sc.CPS || null,
+        currentGamePoints: currentGamePoints,
+        pointsPlayer1: p1Points,
+        pointsPlayer2: p2Points,
+        servingPlayer: servingPlayer,
+        isPlayer1Serving: servingPlayer === 1,
+        isPlayer2Serving: servingPlayer === 2,
+        liveStatusText: sc.SLS || null,
+        setsDetail: setsDetail,
+        scoreSummary: setsDetail.map(s => s.scoreFormatted).join(', ')
     };
 };
 
